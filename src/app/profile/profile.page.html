@@ -1,13 +1,146 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>profile</ion-title>
+    <ion-title>Profile</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profile</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content
+  class="ion-padding profile-page"
+  [class.blur]="showChangeUsernamePopup || showChangePasswordPopup"
+>
+  <div class="logo-container">
+    <img src="assets/logo.png" alt="MediQnect Logo" class="logo" />
+  </div>
+
+  <div class="user-section">
+    <ion-icon name="person-circle-outline" class="user-icon"></ion-icon>
+    <div class="username">{{ user_data.username || 'User Name' }}</div>
+  </div>
+
+  <ion-item button (click)="openChangeUsernamePopup()">
+    <ion-label>Change Username</ion-label>
+  </ion-item>
+
+  <ion-item button (click)="openChangePasswordPopup()">
+    <ion-label>Change Password</ion-label>
+  </ion-item>
+
+  <ion-item button>
+    <ion-label>Switch User</ion-label>
+  </ion-item>
+
+  <div>
+    <p class="account-info">
+      Joined: {{ user_data.created_at | date: 'longDate' }}
+    </p>
+    <p class="account-info">
+      Modified: {{ user_data.modified_at | date: 'longDate'}}
+    </p>
+  </div>
+
+  <!-- Change Username Popup -->
+  <div
+    *ngIf="showChangeUsernamePopup"
+    class="popup-overlay"
+    (click)="closeChangeUsernamePopup()"
+  >
+    <div class="popup-box" (click)="$event.stopPropagation()">
+      <ion-toolbar>
+        <ion-title>Change Username</ion-title>
+      </ion-toolbar>
+
+      <form (ngSubmit)="saveUsernameChange()" #usernameForm="ngForm" novalidate>
+        <label class="input-label">New Username</label>
+        <div class="input-box">
+          <ion-input
+            [(ngModel)]="new_username"
+            name="new_username"
+            minlength="6"
+            required
+          ></ion-input>
+        </div>
+        <label class="input-label">Current Password</label>
+        <div class="input-box">
+          <ion-input
+            [(ngModel)]="password"
+            name="password"
+            type="password"
+            required
+          ></ion-input>
+        </div>
+        <div class="button-row">
+          <ion-button color="danger" (click)="closeChangeUsernamePopup()"
+            >Cancel</ion-button
+          >
+          <ion-button expand="block" type="submit">Save</ion-button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Password Popup -->
+  <div
+    *ngIf="showChangePasswordPopup"
+    class="popup-overlay"
+    (click)="closeChangePasswordPopup()"
+  >
+    <div class="popup-box" (click)="$event.stopPropagation()">
+      <ion-toolbar>
+        <ion-title>Change Password</ion-title>
+      </ion-toolbar>
+
+      <form (ngSubmit)="savePasswordChange()" #passwordForm="ngForm" novalidate>
+        <label class="input-label">New Password</label>
+        <div class="input-box">
+          <ion-input
+            [(ngModel)]="new_password"
+            name="new_password"
+            type="password"
+            minlength="8"
+            required
+          ></ion-input>
+        </div>
+        <label class="input-label">Confirm Password</label>
+        <div class="input-box">
+          <ion-input
+            [(ngModel)]="confirm_password"
+            name="confirm_password"
+            type="password"
+            required
+          ></ion-input>
+        </div>
+        <label class="input-label">Current Password</label>
+        <div class="input-box">
+          <ion-input
+            [(ngModel)]="password"
+            name="password"
+            type="password"
+            required
+          ></ion-input>
+        </div>
+
+        <div class="button-row">
+          <ion-button color="danger" (click)="closeChangePasswordPopup()"
+            >Cancel</ion-button
+          >
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="passwordForm.invalid"
+            >Save</ion-button
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Logout -->
+  <div class="logout-button">
+    <ion-button expand="block" color="danger" (click)="logout()"
+      >Log Out</ion-button
+    >
+  </div>
 </ion-content>

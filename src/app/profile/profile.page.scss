@@ -1,0 +1,113 @@
+.profile-page {
+  .logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .logo {
+    width: 120px;
+    height: auto;
+  }
+
+  .user-section {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 24px;
+
+    .user-icon {
+      font-size: 64px;
+      color: #666;
+    }
+
+    .username {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  }
+
+  .logout-button {
+    margin-top: 40px;
+  }
+
+  ion-item {
+    margin-bottom: 10px;
+  }
+
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .popup-box {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    z-index: 1001;
+    overflow-y: auto;
+    max-height: 90vh;
+    overflow: hidden;
+    touch-action: none;
+
+    ion-toolbar {
+      --background: #f8f8f8;
+      --color: #000;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      font-weight: normal;
+      font-size: 14px;
+      display: block;
+      margin: 10px 0 4px;
+    }
+
+    .input-box {
+      margin-bottom: 8px;
+    }
+
+    .error-message {
+      color: #f44336;
+      font-size: 12px;
+      margin-top: 4px;
+      padding-left: 10px;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+
+      ion-button {
+        width: 48%;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+::ng-deep ion-modal.half-modal::part(content) {
+  height: 50%;
+  align-self: flex-end;
+  border-radius: 16px 16px 0 0;
+}
+
+.half-modal ion-content {
+  --background: #fff;
+}
