@@ -1,28 +1,43 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { ProtectedGuard } from './guards/protected.guard';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   {
-    path: '',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
-  },
-  {
     path: 'login',
-    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
+    loadChildren: () =>
+      import('./login/login.module').then((m) => m.LoginPageModule),
+    canActivate: [AuthGuard],
   },
   {
     path: 'signup',
-    loadChildren: () => import('./signup/signup.module').then( m => m.SignupPageModule)
+    loadChildren: () =>
+      import('./signup/signup.module').then((m) => m.SignupPageModule),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'tabs',
+    loadChildren: () =>
+      import('./tabs/tabs.module').then((m) => m.TabsPageModule),
+    canActivate: [ProtectedGuard],
   },
   {
     path: 'profile',
-    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
-  }
+    loadChildren: () =>
+      import('./profile/profile.module').then((m) => m.ProfilePageModule),
+    canActivate: [ProtectedGuard],
+  },
+  {
+    path: '',
+    redirectTo: localStorage.getItem('access_token') ? '/tabs/tab2' : '/login',
+    pathMatch: 'full',
+  },
 ];
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules }),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}
