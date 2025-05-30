@@ -1,17 +1,39 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
+    <ion-title>History</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="profile()">
+        <ion-icon name="person-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <!-- Tabs -->
+  <ion-segment [(ngModel)]="segment">
+    <ion-segment-button value="completed">Completed</ion-segment-button>
+    <ion-segment-button value="late">Late</ion-segment-button>
+    <ion-segment-button value="missed">Missed</ion-segment-button>
+  </ion-segment>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <!-- Cards by Status -->
+  <ng-container *ngFor="let history of filteredHistories()">
+    <div class="date-label">{{ history.history_datetime }}</div>
+    <ion-card
+      [class.clickable]="segment === 'missed'"
+      (click)="segment === 'missed' ? openAlert(history.user_id, history.schedule_id, history.scheduled_datetime, history.history_id, history.medicine_name, history.status_name) : null"
+    >
+      <ion-card-content class="med-card">
+        <div>
+          <strong>{{ history.medicine_name }}</strong><br />
+          <small
+            >Medicine was administered at {{ history.history_datetime
+            }}</small
+          >
+        </div>
+        <div class="status-dot" [ngClass]="history.status_name"></div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
 </ion-content>

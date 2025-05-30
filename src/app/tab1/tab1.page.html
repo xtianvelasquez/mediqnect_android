@@ -1,17 +1,249 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+    <div class="header-content">
+      <div class="logo-title">
+        <div class="logo">
+          <img
+            src="assets/mediqnect.png"
+            alt="MediQnect Logo"
+            class="logo-img"
+          />
+        </div>
+        <h1 class="title">REMINDERS</h1>
+      </div>
+      <div class="user-icon" (click)="goToProfile()">
+        <i class="fas fa-user-circle"></i>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="content">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title size="large">Medication Tracker</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <ion-button button (click)="openAddPrescription()"
+    >Add Medication Details</ion-button
+  >
+
+  <ion-row class="responsive-layout">
+    <ion-col size="12" size-md="4">
+      <div class="medication-timeline">
+        <div class="timeline-header">
+          <h2>Medication Timeline</h2>
+          <ion-button fill="clear">
+            <ion-icon slot="start" name="calendar-outline"></ion-icon>
+            Show Today
+          </ion-button>
+        </div>
+
+        <p class="selected-date">Selected Date</p>
+
+        <div *ngIf="schedules.length > 0; else noMedications">
+          <div
+            *ngFor="let schedule of schedules"
+            class="medication-item"
+            [style.--medication-color]="schedule.color_name"
+          >
+            <div class="medication-header">
+              <h2>{{ schedule.medicine_name | uppercase }}</h2>
+            </div>
+            <div class="medication-details">
+              <span *ngIf="schedule.scheduled_datetime" class="time">
+                {{ schedule.scheduled_datetime | date:'short' }}
+              </span>
+            </div>
+            <div class="medication-actions">
+              <ion-button class="edit-button">
+                <ion-icon name="create-outline"></ion-icon>
+                EDIT
+              </ion-button>
+              <ion-button
+                class="delete-button"
+                (click)="deleteSchedule(schedule.intake_id, schedule.schedule_id)"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+                DELETE
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noMedications>
+          <div class="no-medications">
+            <ion-icon name="calendar-clear-outline"></ion-icon>
+            <p>No medications for this day</p>
+          </div>
+        </ng-template>
+      </div>
+    </ion-col>
+  </ion-row>
+
+  <ion-modal [isOpen]="prescriptionModal" (didDismiss)="closeAddPrescription()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add Medication Details</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAddPrescription()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <!-- Color Selection -->
+        <div class="color-selection">
+          <div class="color-icons">
+            <span>Choose Color:</span>
+          </div>
+          <ion-item lines="none">
+            <ion-input type="color" [(ngModel)]="color"></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Medicine Information Section -->
+        <div class="section-title">
+          <h2>MEDICINE INFORMATION</h2>
+        </div>
+        <div class="form-section">
+          <ion-item>
+            <ion-label position="stacked">Medicine Name</ion-label>
+            <ion-input
+              [(ngModel)]="medicine_name"
+              type="text"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Medicine Form</ion-label>
+            <ion-radio-group
+              [(ngModel)]="medicine_form"
+              [allowEmptySelection]="true"
+              required
+            >
+              <ion-item *ngFor="let form of forms">
+                <ion-radio slot="start" [value]="form.form_id"></ion-radio>
+                <ion-label>{{ form.form_name }}</ion-label>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Net Content</ion-label>
+            <ion-input
+              [(ngModel)]="net_content"
+              type="number"
+              min="0"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Expiration Date</ion-label>
+            <ion-input
+              [(ngModel)]="expiration_date"
+              type="date"
+              required
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Intake Information Section -->
+        <div class="section-title">
+          <h2>INTAKE INFORMATION</h2>
+        </div>
+        <div class="form-section">
+          <ion-item>
+            <ion-label position="stacked">Dose per intake</ion-label>
+            <ion-input
+              [(ngModel)]="dose"
+              type="number"
+              min="0"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Dose Component</ion-label>
+            <ion-radio-group
+              [(ngModel)]="dose_component"
+              [allowEmptySelection]="true"
+              required
+            >
+              <ion-item *ngFor="let component of components">
+                <ion-radio
+                  slot="start"
+                  [value]="component.component_id"
+                ></ion-radio>
+                <ion-label>{{ component.component_name }}</ion-label>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Hour Interval</ion-label>
+            <ion-input
+              [(ngModel)]="hour_interval"
+              type="number"
+              min="3"
+              placeholder="e.g., 8"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Start Date</ion-label>
+            <ion-input
+              [(ngModel)]="start_datetime"
+              type="datetime-local"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">End Date</ion-label>
+            <ion-input [(ngModel)]="end_date" type="date" required></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Dispenser Section -->
+        <div class="dispenser-section">
+          <span class="dispenser-title"
+            >Choose MediQnect Dispenser Compartment</span
+          >
+          <span class="dispenser-id">Dispenser ID: 3238913</span>
+          <ion-item>
+            <ion-label position="stacked">Compartments</ion-label>
+            <ion-radio-group
+              [(ngModel)]="compartment"
+              [allowEmptySelection]="true"
+            >
+              <ion-item *ngFor="let compartment of compartments">
+                <ion-radio
+                  slot="start"
+                  [value]="compartment.compartment_id"
+                  [disabled]="compartment.status_name !== 'vacant'"
+                ></ion-radio>
+                <ion-label
+                  >{{ compartment.set_name.toUpperCase() + " CONTAINER " +
+                  compartment.compartment_name.toUpperCase() }}</ion-label
+                >
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+        </div>
+
+        <ion-item>
+          <ion-button expand="block" (click)="addPrescription()"
+            >Submit</ion-button
+          >
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>

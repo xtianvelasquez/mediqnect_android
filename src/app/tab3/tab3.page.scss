@@ -1,0 +1,116 @@
+:host {
+  font-family: "Poppins", sans-serif !important;
+  color: white !important;
+}
+
+/* Pop-up (Alert) Styles */
+.alert-wrapper::part(background) {
+  background: #4f6df5 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Alert title and message */
+.alert-wrapper::part(title) {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  color: white !important;
+  font-family: "Poppins", sans-serif !important;
+}
+.alert-wrapper::part(message) {
+  font-size: 1rem !important;
+  color: white !important;
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Alert Buttons */
+.alert-button::part(native) {
+  font-family: "Poppins", sans-serif !important;
+  font-size: 1rem !important;
+  color: white !important;
+}
+.alert-button.cancel::part(native) {
+  color: #ff4d4f !important; /* Red for cancel */
+}
+.alert-button.submit::part(native) {
+  color: #00ff00 !important; /* Green for submit */
+}
+
+/* Date label styling */
+.date-label {
+  font-weight: 600 !important;
+  margin: 16px 8px 8px !important;
+  font-size: 1rem !important;
+  color: white !important;
+}
+
+/* Card styling */
+ion-card {
+  background-color: #4f6df5 !important;
+  font-family: "Poppins", sans-serif !important;
+  color: white !important;
+  border-radius: 12px !important;
+  margin-top: 12px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Make missed cards look clickable */
+ion-card.clickable {
+  cursor: pointer !important;
+  transition: transform 0.1s ease-in-out;
+}
+ion-card.clickable:hover {
+  transform: scale(1.01);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Medication card content */
+.med-card {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  color: white !important;
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Segment tab styling */
+ion-segment-button {
+  font-weight: 500 !important;
+  font-family: "Poppins", sans-serif !important;
+  color: #666 !important;
+  --color-checked: #4f6df5 !important;
+  --color-focused: #4f6df5 !important;
+  --color-hover: #4f6df5 !important;
+}
+ion-segment-button.segment-button-checked {
+  color: #4f6df5 !important;
+}
+ion-segment-button::part(native) {
+  color: #4f6df5 !important;
+}
+ion-segment-button::part(indicator) {
+  background-color: #4f6df5 !important;
+}
+ion-segment-button:hover {
+  background-color: transparent !important;
+  color: #4f6df5 !important;
+}
+
+/* Status dots */
+.status-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  position: relative !important;
+  top: -10px !important;
+}
+.status-dot.completed {
+  background-color: #00ff00 !important;
+}
+.status-dot.late {
+  background-color: #ffc107 !important;
+}
+.status-dot.missed {
+  background-color: #ff4d4f !important;
+}
