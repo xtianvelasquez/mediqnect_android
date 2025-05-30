@@ -1,0 +1,67 @@
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertService } from '../services/alert.service';
+import axios from 'axios';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.page.html',
+  styleUrls: ['./login.page.scss'],
+  standalone: false,
+})
+export class LoginPage {
+  username: string = '';
+  password: string = '';
+
+  constructor(private router: Router, private alertService: AlertService) {}
+
+  signup() {
+    this.router.navigate(['/signup']);
+  }
+
+  async login() {
+    try {
+      if (!this.username || !this.password) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'Please fill in the necessary field.'
+        );
+        return;
+      }
+
+      const response = await axios.post('http://127.0.0.1:8000/token', {
+        username: this.username,
+        password: this.password,
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        console.log('Login successful!');
+        localStorage.setItem('access_token', response.data.access_token);
+        this.router.navigate(['/tabs/tab2']);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const status = error.response.status;
+          const detail = error.response.data?.detail;
+
+          console.error('Status:', status);
+          console.error('Detail:', detail);
+          this.alertService.presentError(detail);
+        } else if (error.request) {
+          this.alertService.presentMessage(
+            'Network Error!',
+            'Could not reach the server. Check your internet connection or try again later.'
+          );
+        } else {
+          this.alertService.presentError(error.message);
+        }
+      } else {
+        this.alertService.presentMessage(
+          'Error!',
+          'An unexpected error occured. Please try again later.'
+        );
+      }
+    }
+  }
+}

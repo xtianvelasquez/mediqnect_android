@@ -1,0 +1,38 @@
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <div class="logo-wrapper">
+      <img src="assets/logo.png" alt="MediQnect Logo" />
+    </div>
+
+    <div class="form-card">
+      <h2 class="form-title">LOGIN</h2>
+
+      <form (submit)="login(); $event.preventDefault();">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <ion-item lines="none">
+            <ion-input type="text" [(ngModel)]="username" name="username" required> </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <ion-item lines="none">
+            <ion-input type="password" [(ngModel)]="password" name="password" required>
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button expand="block" type="submit" class="action-btn"
+          >LOGIN</ion-button
+        >
+      </form>
+
+      <div class="bottom-text">
+        Don’t have an account?
+        <a (click)="signup()">Sign up</a>
+      </div>
+    </div>
+  </div>
+</ion-content>

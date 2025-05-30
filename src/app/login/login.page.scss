@@ -1,0 +1,127 @@
+ion-content {
+  --background: #436ab7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.container {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: -30px;
+  z-index: 2;
+  position: relative;
+}
+
+.logo-wrapper img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid white;
+  background: white;
+  object-fit: contain;
+}
+
+.form-card {
+  background: white;
+  border-radius: 20px;
+  padding: 60px 20px 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: -40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #5e3df5;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+ion-item {
+  --background: transparent;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  padding-inline-start: 10px;
+  width: 100%;
+}
+
+ion-input {
+  color: #5e3df5;
+}
+
+.action-btn {
+  background: #5e3df5;
+  color: white;
+  border-radius: 30px;
+  font-weight: bold;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.bottom-text {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #999999;
+  text-align: center;
+}
+
+.bottom-text a {
+  color: #5e3df5;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Responsive: Small screens */
+@media (max-width: 360px) {
+  .form-title {
+    font-size: 20px;
+  }
+
+  .form-card {
+    padding: 50px 16px 25px;
+  }
+
+  .logo-wrapper img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .action-btn {
+    font-size: 14px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+}
