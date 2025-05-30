@@ -53,6 +53,29 @@ export class ProfilePage {
     this.password = '';
   }
 
+  validateUsernameChangeInput() {
+    if (!this.new_username || !this.password)
+      return 'Please fill the necessary field.';
+
+    if (this.new_username.length < 6 || this.new_username.length > 50)
+      return 'Username must be at least 6 and at most 50 characters long.';
+
+    return null;
+  }
+
+  validatePasswordChangeInput() {
+    if (!this.new_password || !this.confirm_password || !this.password)
+      return 'Please fill the necessary field.';
+
+    if (this.new_password != this.confirm_password)
+      return 'Password does not match with the confirmation password. Please try again.';
+
+    if (this.new_password.length < 6 || this.new_password.length > 50)
+      return 'Password must be at least 6 and at most 50 characters long.';
+
+    return null;
+  }
+
   async getUserData() {
     try {
       if (!this.token) {
@@ -89,19 +112,9 @@ export class ProfilePage {
         return;
       }
 
-      if (!this.new_username || !this.password) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'Please fill the necessary field.'
-        );
-        return;
-      }
-
-      if (this.new_username.length < 6 || this.new_username.length > 50) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'Username must be at least 6 and at most 50 characters long.'
-        );
+      const input_error = this.validatePasswordChangeInput();
+      if (input_error) {
+        await this.alertService.presentMessage('Error!', input_error);
         return;
       }
 
@@ -161,27 +174,9 @@ export class ProfilePage {
         return;
       }
 
-      if (!this.new_password || !this.confirm_password || !this.password) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'Please fill the necessary field.'
-        );
-        return;
-      }
-
-      if (this.new_password != this.confirm_password) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'Password does not match with the confirmation password. Please try again.'
-        );
-        return;
-      }
-
-      if (this.new_password.length < 6 || this.new_password.length > 50) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'Password must be at least 6 and at most 50 characters long.'
-        );
+      const input_error = this.validatePasswordChangeInput();
+      if (input_error) {
+        await this.alertService.presentMessage('Error!', input_error);
         return;
       }
 
