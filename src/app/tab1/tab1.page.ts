@@ -3,6 +3,7 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../services/alert.service';
+import { urls } from 'src/environments/environment';
 import axios from 'axios';
 
 interface Forms {
@@ -33,7 +34,9 @@ interface Compartments {
 export class Tab1Page {
   prescriptionModal = false;
 
-  token: string = localStorage.getItem('access_token') || '';
+  get token(): string {
+    return localStorage.getItem('access_token') || '';
+  }
 
   forms: Forms[] = [];
   components: Components[] = [];
@@ -113,7 +116,7 @@ export class Tab1Page {
 
   async getMedicineForms() {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/forms');
+      const response = await axios.get(`${urls.url}/forms`);
       if (response.status === 200) {
         this.forms = response.data;
         console.log(this.forms);
@@ -125,7 +128,7 @@ export class Tab1Page {
 
   async getDoseComponents() {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/components');
+      const response = await axios.get(`${urls.url}/components`);
       if (response.status === 200) {
         this.components = response.data;
         console.log(this.components);
@@ -137,7 +140,7 @@ export class Tab1Page {
 
   async getCompartments() {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/compartments');
+      const response = await axios.get(`${urls.url}/compartments`);
       if (response.status === 200) {
         this.compartments = response.data;
         console.log(this.compartments);
@@ -171,7 +174,7 @@ export class Tab1Page {
         : null;
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/prescription',
+        `${urls.url}/prescription`,
         {
           color: {
             color_name: this.color,
@@ -227,7 +230,7 @@ export class Tab1Page {
 
   async getSchedules() {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/schedules', {
+      const response = await axios.get(`${urls.url}/schedules`, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -244,7 +247,7 @@ export class Tab1Page {
   async deleteSchedule(intake_id: number, schedule_id: number) {
     try {
       const response = await axios.post(
-        'http://127.0.0.1:8000/delete/schedule',
+        `${urls.url}/delete/schedule`,
         {
           intake_id: intake_id,
           schedule_id: schedule_id,

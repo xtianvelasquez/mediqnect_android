@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular/standalone';
-
-import axios from 'axios';
 import { AlertService } from '../services/alert.service';
+import { urls } from 'src/environments/environment';
+import axios from 'axios';
 
 interface History {
   user_id: number;
@@ -205,7 +205,7 @@ export class Tab3Page {
 
   async getHistories() {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/histories', {
+      const response = await axios.get(`${urls.url}/histories`, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -236,7 +236,7 @@ export class Tab3Page {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/update/medication/missed',
+        `${urls.url}/update/medication/missed`,
         {
           user_id: user_id,
           schedule_id: schedule_id,

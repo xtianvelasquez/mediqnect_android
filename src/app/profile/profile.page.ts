@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
+import { urls } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({
@@ -17,7 +18,9 @@ export class ProfilePage {
   confirm_password: string = '';
   password: string = '';
 
-  token: string = localStorage.getItem('access_token') || '';
+  get token(): string {
+    return localStorage.getItem('access_token') || '';
+  }
 
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
@@ -87,7 +90,7 @@ export class ProfilePage {
         return;
       }
 
-      const response = await axios.get('http://127.0.0.1:8000/user', {
+      const response = await axios.get(`${urls.url}/user`, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -119,7 +122,7 @@ export class ProfilePage {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/username',
+        `${urls.url}/username`,
         {
           username: this.new_username,
           password: this.password,
@@ -181,7 +184,7 @@ export class ProfilePage {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/password',
+        `${urls.url}/password`,
         {
           new_password: this.new_password,
           password: this.password,
@@ -237,7 +240,7 @@ export class ProfilePage {
       }
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/logout',
+        `${urls.url}/logout`,
         {},
         {
           headers: {
