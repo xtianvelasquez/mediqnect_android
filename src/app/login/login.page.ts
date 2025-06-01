@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-import { urls } from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({
@@ -30,7 +30,7 @@ export class LoginPage {
         return;
       }
 
-      const response = await axios.post(`${urls.url}/token`, {
+      const response = await axios.post(`${environment.urls.api}/token`, {
         username: this.username,
         password: this.password,
       });

@@ -10,8 +10,9 @@ import { ProfilePage } from './profile.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    ProfilePageRoutingModule
+    ProfilePageRoutingModule,
+    ProfilePage
   ],
-  declarations: [ProfilePage]
+  declarations: []
 })
 export class ProfilePageModule {}

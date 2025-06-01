@@ -34,10 +34,10 @@
 
   <div>
     <p class="account-info">
-      Joined: {{ user_data.created_at | date: 'longDate' }}
+      Joined: {{ user_data.created_at | date:'longDate' }}
     </p>
     <p class="account-info">
-      Modified: {{ user_data.modified_at | date: 'longDate'}}
+      Modified: {{ user_data.modified_at | date:'longDate' }}
     </p>
   </div>
 
@@ -128,12 +128,7 @@
           <ion-button color="danger" (click)="closeChangePasswordPopup()"
             >Cancel</ion-button
           >
-          <ion-button
-            expand="block"
-            type="submit"
-            [disabled]="passwordForm.invalid"
-            >Save</ion-button
-          >
+          <ion-button expand="block" type="submit">Save</ion-button>
         </div>
       </form>
     </div>

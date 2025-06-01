@@ -1,14 +1,18 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-import { urls } from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class ProfilePage {
   user_data: any = {};
@@ -90,7 +94,7 @@ export class ProfilePage {
         return;
       }
 
-      const response = await axios.get(`${urls.url}/user`, {
+      const response = await axios.get(`${environment.urls.api}/read/user`, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -115,14 +119,14 @@ export class ProfilePage {
         return;
       }
 
-      const input_error = this.validatePasswordChangeInput();
+      const input_error = this.validateUsernameChangeInput();
       if (input_error) {
         await this.alertService.presentMessage('Error!', input_error);
         return;
       }
 
       const response = await axios.post(
-        `${urls.url}/username`,
+        `${environment.urls.api}/update/username`,
         {
           username: this.new_username,
           password: this.password,
@@ -184,7 +188,7 @@ export class ProfilePage {
       }
 
       const response = await axios.post(
-        `${urls.url}/password`,
+        `${environment.urls.api}/update/password`,
         {
           new_password: this.new_password,
           password: this.password,
@@ -240,7 +244,7 @@ export class ProfilePage {
       }
 
       const response = await axios.post(
-        `${urls.url}/logout`,
+        `${environment.urls.api}/logout`,
         {},
         {
           headers: {

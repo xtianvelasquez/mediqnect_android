@@ -1,9 +1,10 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../services/alert.service';
-import { urls } from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 interface Forms {
@@ -55,13 +56,10 @@ export class Tab1Page {
   dose_component: number = 0;
   color: string = '#ff0000';
 
-  constructor(private alertService: AlertService) {}
+  constructor(private router: Router, private alertService: AlertService) {}
 
-  handleBlur(event: Event) {
-    const target = event.target as HTMLElement;
-    setTimeout(() => {
-      target.blur(); // removes focus so it's not inside the hidden <ion-router-outlet>
-    }, 10);
+  profile() {
+    this.router.navigate(['/profile']);
   }
 
   openAddPrescription() {
@@ -116,7 +114,7 @@ export class Tab1Page {
 
   async getMedicineForms() {
     try {
-      const response = await axios.get(`${urls.url}/forms`);
+      const response = await axios.get(`${environment.urls.api}/get/forms`);
       if (response.status === 200) {
         this.forms = response.data;
         console.log(this.forms);
@@ -128,7 +126,9 @@ export class Tab1Page {
 
   async getDoseComponents() {
     try {
-      const response = await axios.get(`${urls.url}/components`);
+      const response = await axios.get(
+        `${environment.urls.api}/get/components`
+      );
       if (response.status === 200) {
         this.components = response.data;
         console.log(this.components);
@@ -140,13 +140,34 @@ export class Tab1Page {
 
   async getCompartments() {
     try {
-      const response = await axios.get(`${urls.url}/compartments`);
+      const response = await axios.get(
+        `${environment.urls.api}/get/compartments`
+      );
       if (response.status === 200) {
         this.compartments = response.data;
         console.log(this.compartments);
       }
     } catch (error) {
       console.error('Error fetching compartments:', error);
+    }
+  }
+
+  async getSchedules() {
+    try {
+      const response = await axios.get(
+        `${environment.urls.api}/get/schedules`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        this.schedules = response.data;
+        console.log(this.schedules);
+      }
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
     }
   }
 
@@ -174,7 +195,7 @@ export class Tab1Page {
         : null;
 
       const response = await axios.post(
-        `${urls.url}/prescription`,
+        `${environment.urls.api}/create/prescription`,
         {
           color: {
             color_name: this.color,
@@ -228,26 +249,10 @@ export class Tab1Page {
     }
   }
 
-  async getSchedules() {
-    try {
-      const response = await axios.get(`${urls.url}/schedules`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
-      if (response.status === 200) {
-        this.schedules = response.data;
-        console.log(this.schedules);
-      }
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-    }
-  }
-
   async deleteSchedule(intake_id: number, schedule_id: number) {
     try {
       const response = await axios.post(
-        `${urls.url}/delete/schedule`,
+        `${environment.urls.api}/delete/schedule`,
         {
           intake_id: intake_id,
           schedule_id: schedule_id,

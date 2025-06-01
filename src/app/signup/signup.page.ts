@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-import { urls } from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({
@@ -56,7 +56,7 @@ export class SignupPage {
 
   async signup() {
     try {
-      const response = await axios.post(`${urls.url}/signup`, {
+      const response = await axios.post(`${environment.urls.api}/signup`, {
         username: this.username.trim(),
         password: this.password.trim(),
         dispenser_code: this.dispenser_code,

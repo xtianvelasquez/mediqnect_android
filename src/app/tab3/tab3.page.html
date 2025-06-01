@@ -19,17 +19,17 @@
 
   <!-- Cards by Status -->
   <ng-container *ngFor="let history of filteredHistories()">
-    <div class="date-label">{{ history.history_datetime }}</div>
+    <div class="date-label">{{ history.history_datetime | date:'short' }}</div>
     <ion-card
       [class.clickable]="segment === 'missed'"
-      (click)="segment === 'missed' ? openAlert(history.user_id, history.schedule_id, history.scheduled_datetime, history.history_id, history.medicine_name, history.status_name) : null"
+      (click)="segment === 'missed' ? openAlert(history.schedule_id, history.scheduled_datetime, history.history_id, history.medicine_name, history.status_name) : null"
     >
       <ion-card-content class="med-card">
         <div>
           <strong>{{ history.medicine_name }}</strong><br />
           <small
-            >Medicine was administered at {{ history.history_datetime
-            }}</small
+            >Medicine was administered at {{ history.scheduled_datetime |
+            date:'short' }}</small
           >
         </div>
         <div class="status-dot" [ngClass]="history.status_name"></div>

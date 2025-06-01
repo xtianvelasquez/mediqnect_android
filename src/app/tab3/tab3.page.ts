@@ -1,15 +1,15 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular/standalone';
 import { AlertService } from '../services/alert.service';
-import { urls } from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 interface History {
-  user_id: number;
   schedule_id: number;
   scheduled_datetime: string;
   history_id: number;
@@ -25,6 +25,7 @@ interface History {
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [DatePipe],
 })
 export class Tab3Page {
   histories: History[] = [];
@@ -36,6 +37,7 @@ export class Tab3Page {
   }
 
   constructor(
+    private datePipe: DatePipe,
     private router: Router,
     private alertController: AlertController,
     private alertService: AlertService
@@ -52,7 +54,6 @@ export class Tab3Page {
   }
 
   async openAlert(
-    user_id: number,
     schedule_id: number,
     scheduled_datetime: string,
     history_id: number,
@@ -61,16 +62,20 @@ export class Tab3Page {
   ) {
     if (status_name === 'missed') {
       this.openMissedMedicationAlert(
-        user_id,
         schedule_id,
         scheduled_datetime,
         history_id,
         medicine_name
       );
     } else {
+      const formatted_datetime = this.datePipe.transform(
+        scheduled_datetime,
+        'short'
+      );
+
       const alert = await this.alertController.create({
         header: 'Medication Info',
-        message: `<strong>${medicine_name}</strong><br>Administered at: ${scheduled_datetime}`,
+        message: `<strong>${medicine_name}</strong><br>Administered at: ${formatted_datetime}`,
         buttons: ['OK'],
         mode: 'md',
       });
@@ -80,7 +85,6 @@ export class Tab3Page {
   }
 
   openMissedMedicationAlert(
-    user_id: number,
     schedule_id: number,
     scheduled_datetime: string,
     history_id: number,
@@ -99,7 +103,6 @@ export class Tab3Page {
             text: 'Yes',
             handler: () => {
               this.openTimeSelectionAlert(
-                user_id,
                 schedule_id,
                 scheduled_datetime,
                 history_id,
@@ -108,24 +111,29 @@ export class Tab3Page {
             },
           },
         ],
+        mode: 'md',
       })
       .then((alert) => alert.present());
   }
 
   openTimeSelectionAlert(
-    user_id: number,
     schedule_id: number,
     scheduled_datetime: string,
     history_id: number,
     medicine_name: string
   ) {
+    const formatted_datetime = this.datePipe.transform(
+      scheduled_datetime,
+      'short'
+    );
+
     this.alertController
       .create({
         header: `What time did you take ${medicine_name}?`,
         inputs: [
           {
             type: 'radio',
-            label: `Same Time As Scheduled (${scheduled_datetime})`,
+            label: `Same Time As Scheduled (${formatted_datetime})`,
             value: scheduled_datetime,
             checked: true,
           },
@@ -142,17 +150,14 @@ export class Tab3Page {
           },
           {
             text: 'Submit',
-            handler: (selectedTime) => {
-              if (selectedTime === 'custom') {
+            handler: (selected_time) => {
+              if (selected_time === 'custom') {
                 this.promptUserForTime(
-                  user_id,
                   schedule_id,
-                  scheduled_datetime,
                   history_id
                 );
               } else {
                 this.updateMissedMedication(
-                  user_id,
                   schedule_id,
                   scheduled_datetime,
                   history_id
@@ -161,19 +166,18 @@ export class Tab3Page {
             },
           },
         ],
+        mode: 'md',
       })
       .then((alert) => alert.present());
   }
 
   promptUserForTime(
-    user_id: number,
     schedule_id: number,
-    scheduled_datetime: string,
     history_id: number
   ) {
     this.alertController
       .create({
-        header: `Enter intake datetime for the schedule ${scheduled_datetime}:`,
+        header: 'Enter intake datetime:',
         inputs: [
           {
             name: 'history_datetime',
@@ -188,28 +192,33 @@ export class Tab3Page {
           {
             text: 'Submit',
             handler: (data) => {
-              if (data.time) {
+              if (data.history_datetime) {
+                const full_datetime = new Date(data.history_datetime);
+
                 this.updateMissedMedication(
-                  user_id,
                   schedule_id,
-                  data.history_datetime,
+                  full_datetime.toISOString(),
                   history_id
                 );
               }
             },
           },
         ],
+        mode: 'md',
       })
       .then((alert) => alert.present());
   }
 
   async getHistories() {
     try {
-      const response = await axios.get(`${urls.url}/histories`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
+      const response = await axios.get(
+        `${environment.urls.api}/get/histories`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
       if (response.status === 200) {
         this.histories = response.data;
         console.log(this.histories);
@@ -220,9 +229,8 @@ export class Tab3Page {
   }
 
   async updateMissedMedication(
-    user_id: number,
     schedule_id: number,
-    scheduled_datetime: string,
+    data_datetime: string,
     history_id: number
   ) {
     try {
@@ -236,11 +244,10 @@ export class Tab3Page {
       }
 
       const response = await axios.post(
-        `${urls.url}/update/medication/missed`,
+        `${environment.urls.api}/update/history`,
         {
-          user_id: user_id,
           schedule_id: schedule_id,
-          history_datetime: scheduled_datetime,
+          history_datetime: data_datetime,
           history_id: history_id,
         },
         {

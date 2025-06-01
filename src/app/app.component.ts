@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { WebsocketService } from './services/websocket.service';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +8,17 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
-  constructor() {}
+  get token(): string {
+    return localStorage.getItem('access_token') || '';
+  }
+
+  constructor(private websocketService: WebsocketService) {}
+
+  ngOnInit() {
+    if (this.token) {
+      this.websocketService.connectWebSocket();
+    } else {
+      console.log('No token found, WebSocket will not start.');
+    }
+  }
 }
