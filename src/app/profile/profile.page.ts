@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../services/auth.service';
 import axios from 'axios';
 
 @Component({
@@ -22,14 +23,16 @@ export class ProfilePage {
   confirm_password: string = '';
   password: string = '';
 
-  get token(): string {
-    return localStorage.getItem('access_token') || '';
-  }
+  active = this.authService.getActiveAccount();
 
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
 
-  constructor(private router: Router, private alertService: AlertService) {}
+  constructor(
+    private router: Router,
+    private alertService: AlertService,
+    private authService: AuthService
+  ) {}
 
   openChangeUsernamePopup() {
     this.resetUsernamePopup();
@@ -85,7 +88,7 @@ export class ProfilePage {
 
   async getUserData() {
     try {
-      if (!this.token) {
+      if (!this.active?.access_token && !this.active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -96,7 +99,7 @@ export class ProfilePage {
 
       const response = await axios.get(`${environment.urls.api}/read/user`, {
         headers: {
-          Authorization: `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.active.access_token}`,
         },
       });
 
@@ -110,7 +113,7 @@ export class ProfilePage {
 
   async saveUsernameChange() {
     try {
-      if (!this.token) {
+      if (!this.active?.access_token && !this.active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -133,7 +136,7 @@ export class ProfilePage {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -172,7 +175,7 @@ export class ProfilePage {
 
   async savePasswordChange() {
     try {
-      if (!this.token) {
+      if (!this.active?.access_token && !this.active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found'
@@ -195,7 +198,7 @@ export class ProfilePage {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -234,7 +237,7 @@ export class ProfilePage {
 
   async logout() {
     try {
-      if (!this.token) {
+      if (!this.active?.access_token && !this.active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -248,7 +251,7 @@ export class ProfilePage {
         {},
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );

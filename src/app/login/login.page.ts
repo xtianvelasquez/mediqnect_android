@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../services/auth.service';
 import axios from 'axios';
 
 @Component({
@@ -14,7 +15,11 @@ export class LoginPage {
   username: string = '';
   password: string = '';
 
-  constructor(private router: Router, private alertService: AlertService) {}
+  constructor(
+    private router: Router,
+    private alertService: AlertService,
+    private authService: AuthService
+  ) {}
 
   signup() {
     this.router.navigate(['/signup']);
@@ -36,8 +41,12 @@ export class LoginPage {
       });
 
       if (response.status === 200 || response.status === 201) {
+        this.authService.addAccount(
+          response.data.user,
+          response.data.access_token
+        );
+        this.authService.switchAccount(response.data.user);
         console.log('Login successful!');
-        localStorage.setItem('access_token', response.data.access_token);
         this.router.navigate(['/tabs/tab2']);
       }
     } catch (error) {

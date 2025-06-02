@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../services/auth.service';
 import axios from 'axios';
 
 interface Forms {
@@ -36,9 +37,7 @@ export class Tab1Page {
   prescriptionModal = false;
   tracker_step = 1;
 
-  get token(): string {
-    return localStorage.getItem('access_token') || '';
-  }
+  active = this.authService.getActiveAccount();
 
   forms: Forms[] = [];
   components: Components[] = [];
@@ -58,7 +57,11 @@ export class Tab1Page {
   dose_component: number = 0;
   color: string = '#ff0000';
 
-  constructor(private router: Router, private alertService: AlertService) {}
+  constructor(
+    private router: Router,
+    private alertService: AlertService,
+    private authService: AuthService
+  ) {}
 
   profile() {
     this.router.navigate(['/profile']);
@@ -77,8 +80,6 @@ export class Tab1Page {
   }
 
   validatePrescriptionInputs() {
-    if (!this.token) return 'No access token found.';
-
     if (
       !this.color ||
       !this.medicine_name ||
@@ -160,11 +161,20 @@ export class Tab1Page {
 
   async getSchedules() {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const response = await axios.get(
-        `${environment.urls.api}/get/schedules`,
+        `${environment.urls.api}/read/schedules`,
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -179,11 +189,20 @@ export class Tab1Page {
 
   async getPrescriptions() {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const response = await axios.get(
         `${environment.urls.api}/read/prescription`,
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -198,6 +217,15 @@ export class Tab1Page {
 
   async addPrescription() {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const start = new Date(this.start_datetime);
       const end = new Date(this.end_date);
       const now = new Date();
@@ -244,7 +272,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -276,6 +304,15 @@ export class Tab1Page {
 
   async deleteSchedule(intake_id: number, schedule_id: number) {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const response = await axios.post(
         `${environment.urls.api}/delete/schedule`,
         {
@@ -284,7 +321,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -298,6 +335,15 @@ export class Tab1Page {
 
   async deletePrescription(medicine_id: number) {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const response = await axios.post(
         `${environment.urls.api}/delete/prescription`,
         {
@@ -305,7 +351,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );

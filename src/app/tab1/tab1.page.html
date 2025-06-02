@@ -40,7 +40,7 @@
         </div>
 
         <div *ngIf="tracker_step === 1">
-          <div *ngIf="schedules.length > 0; else noMedications">
+          <div *ngIf="schedules.length > 0; else noSchedules">
             <div
               *ngFor="let schedule of schedules"
               class="medication-item"
@@ -50,9 +50,7 @@
                 <h2>{{ schedule.medicine_name | uppercase }}</h2>
               </div>
               <div class="medication-details">
-                <span>
-                  {{ schedule.scheduled_datetime | date:'short' }}
-                </span>
+                <span> {{ schedule.scheduled_datetime | date:'short' }} </span>
               </div>
               <div class="medication-actions">
                 <ion-button
@@ -67,10 +65,10 @@
           </div>
         </div>
 
-        <ng-template #noMedications>
+        <ng-template #noSchedules>
           <div class="no-medications">
             <ion-icon name="calendar-clear-outline"></ion-icon>
-            <p>No medications yet.</p>
+            <p>No schedules yet.</p>
           </div>
         </ng-template>
 
@@ -86,8 +84,8 @@
               </div>
               <div class="medication-details">
                 <span>
-                  {{ prescription.start_datetime | date:'short' }} - {{
-                  prescription.end_datetime | date:'short' }}
+                  {{ prescription.start_datetime | date:'longDate' }} - {{
+                  prescription.end_datetime | date:'longDate' }}
                 </span>
               </div>
               <div class="medication-actions">
@@ -95,7 +93,10 @@
                   <ion-icon name="create-outline"></ion-icon>
                   EDIT
                 </ion-button>
-                <ion-button class="delete-button" (click)="deletePrescription(prescription.medicine_id)">
+                <ion-button
+                  class="delete-button"
+                  (click)="deletePrescription(prescription.medicine_id)"
+                >
                   <ion-icon name="trash-outline"></ion-icon>
                   DELETE
                 </ion-button>
@@ -126,6 +127,7 @@
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
+
       <ion-content class="ion-padding">
         <!-- Color Selection -->
         <div class="color-selection">

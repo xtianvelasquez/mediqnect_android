@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular/standalone';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../services/auth.service';
 import axios from 'axios';
 
 interface History {
@@ -32,15 +33,14 @@ export class Tab3Page {
 
   segment: string = 'completed';
 
-  get token(): string {
-    return localStorage.getItem('access_token') || '';
-  }
+  active = this.authService.getActiveAccount();
 
   constructor(
     private datePipe: DatePipe,
     private router: Router,
     private alertController: AlertController,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private authService: AuthService
   ) {}
 
   profile() {
@@ -152,10 +152,7 @@ export class Tab3Page {
             text: 'Submit',
             handler: (selected_time) => {
               if (selected_time === 'custom') {
-                this.promptUserForTime(
-                  schedule_id,
-                  history_id
-                );
+                this.promptUserForTime(schedule_id, history_id);
               } else {
                 this.updateMissedMedication(
                   schedule_id,
@@ -171,10 +168,7 @@ export class Tab3Page {
       .then((alert) => alert.present());
   }
 
-  promptUserForTime(
-    schedule_id: number,
-    history_id: number
-  ) {
+  promptUserForTime(schedule_id: number, history_id: number) {
     this.alertController
       .create({
         header: 'Enter intake datetime:',
@@ -211,11 +205,20 @@ export class Tab3Page {
 
   async getHistories() {
     try {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+
       const response = await axios.get(
-        `${environment.urls.api}/get/histories`,
+        `${environment.urls.api}/read/histories`,
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );
@@ -234,7 +237,15 @@ export class Tab3Page {
     history_id: number
   ) {
     try {
-      if (!this.token) {
+      if (!this.active?.access_token && !this.active?.user) {
+        await this.alertService.presentMessage(
+          'Error!',
+          'No access token found.'
+        );
+        this.router.navigate(['/login']);
+        return;
+      }
+      if (!this.active.access_token) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found'
@@ -252,7 +263,7 @@ export class Tab3Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.active.access_token}`,
           },
         }
       );

@@ -1,19 +1,22 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../services/auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebsocketService {
   ws!: WebSocket;
+  active = this.authService.getActiveAccount();
 
-  constructor() {
+  constructor(private authService: AuthService) {
     this.connectWebSocket();
   }
 
   connectWebSocket() {
-    const token = localStorage.getItem('access_token') ?? '';
-    this.ws = new WebSocket(`${environment.urls.ws}/ws?token=${token}`);
+    this.ws = new WebSocket(
+      `${environment.urls.ws}/ws?token=${this.active?.access_token}`
+    );
 
     this.ws.onopen = () => console.log('WebSocket connected');
     this.ws.onmessage = (event) => {
