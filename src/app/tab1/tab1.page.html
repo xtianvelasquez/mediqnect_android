@@ -11,9 +11,9 @@
         </div>
         <h1 class="title">REMINDERS</h1>
       </div>
-      <div class="user-icon" (click)="profile()">
-        <i class="fas fa-user-circle"></i>
-      </div>
+      <ion-button (click)="profile()">
+        <ion-icon name="person-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -25,8 +25,8 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-button button (click)="openAddPrescription()"
-    >Add Medication Details</ion-button
+  <ion-button expand="block" (click)="openAddPrescription()"
+    >Add Reminders</ion-button
   >
 
   <ion-row class="responsive-layout">
@@ -34,40 +34,35 @@
       <div class="medication-timeline">
         <div class="timeline-header">
           <h2>Medication Timeline</h2>
-          <ion-button fill="clear">
-            <ion-icon slot="start" name="calendar-outline"></ion-icon>
-            Show Today
-          </ion-button>
+          <ion-button fill="clear" (click)="nextStep()"
+            >Show Prescriptions</ion-button
+          >
         </div>
 
-        <p class="selected-date">Selected Date</p>
-
-        <div *ngIf="schedules.length > 0; else noMedications">
-          <div
-            *ngFor="let schedule of schedules"
-            class="medication-item"
-            [style.--medication-color]="schedule.color_name"
-          >
-            <div class="medication-header">
-              <h2>{{ schedule.medicine_name | uppercase }}</h2>
-            </div>
-            <div class="medication-details">
-              <span *ngIf="schedule.scheduled_datetime" class="time">
-                {{ schedule.scheduled_datetime | date:'short' }}
-              </span>
-            </div>
-            <div class="medication-actions">
-              <ion-button class="edit-button">
-                <ion-icon name="create-outline"></ion-icon>
-                EDIT
-              </ion-button>
-              <ion-button
-                class="delete-button"
-                (click)="deleteSchedule(schedule.intake_id, schedule.schedule_id)"
-              >
-                <ion-icon name="trash-outline"></ion-icon>
-                DELETE
-              </ion-button>
+        <div *ngIf="tracker_step === 1">
+          <div *ngIf="schedules.length > 0; else noMedications">
+            <div
+              *ngFor="let schedule of schedules"
+              class="medication-item"
+              [style.--medication-color]="schedule.color_name"
+            >
+              <div class="medication-header">
+                <h2>{{ schedule.medicine_name | uppercase }}</h2>
+              </div>
+              <div class="medication-details">
+                <span>
+                  {{ schedule.scheduled_datetime | date:'short' }}
+                </span>
+              </div>
+              <div class="medication-actions">
+                <ion-button
+                  class="delete-button"
+                  (click)="deleteSchedule(schedule.intake_id, schedule.schedule_id)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                  DELETE
+                </ion-button>
+              </div>
             </div>
           </div>
         </div>
@@ -75,7 +70,44 @@
         <ng-template #noMedications>
           <div class="no-medications">
             <ion-icon name="calendar-clear-outline"></ion-icon>
-            <p>No medications for this day</p>
+            <p>No medications yet.</p>
+          </div>
+        </ng-template>
+
+        <div *ngIf="tracker_step === 2">
+          <div *ngIf="prescriptions.length > 0; else noPrescriptions">
+            <div
+              *ngFor="let prescription of prescriptions"
+              class="medication-item"
+              [style.--medication-color]="prescription.color_name"
+            >
+              <div class="medication-header">
+                <h2>{{ prescription.medicine_name | uppercase }}</h2>
+              </div>
+              <div class="medication-details">
+                <span>
+                  {{ prescription.start_datetime | date:'short' }} - {{
+                  prescription.end_datetime | date:'short' }}
+                </span>
+              </div>
+              <div class="medication-actions">
+                <ion-button class="edit-button">
+                  <ion-icon name="create-outline"></ion-icon>
+                  EDIT
+                </ion-button>
+                <ion-button class="delete-button" (click)="deletePrescription(prescription.medicine_id)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  DELETE
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noPrescriptions>
+          <div class="no-medications">
+            <ion-icon name="calendar-clear-outline"></ion-icon>
+            <p>No prescriptions yet.</p>
           </div>
         </ng-template>
       </div>

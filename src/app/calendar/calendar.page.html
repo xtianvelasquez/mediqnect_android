@@ -1,0 +1,389 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="logo-title">
+        <div class="logo">
+          <img src="assets/mediqnect.png" alt="Logo" class="logo-img" />
+        </div>
+        <h1 class="title">REMINDERS</h1>
+      </div>
+      <div class="user-icon" (click)="goToProfile()">
+        <i class="fas fa-user-circle"></i>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="content">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Medication Tracker</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Time Display -->
+  <div class="time-display">
+    <div class="weather-icon" [ngClass]="getTimeOfDay()">
+      <!-- Morning Sun -->
+      <i class="fas fa-sun morning-icon" *ngIf="isMorning()"></i>
+
+      <!-- Afternoon Cloud & Sun -->
+      <div class="afternoon-icons" *ngIf="isAfternoon()">
+        <i class="fas fa-sun"></i>
+        <i class="fas fa-cloud"></i>
+      </div>
+
+      <!-- Evening Moon & Stars -->
+      <div class="evening-icons" *ngIf="isEvening()">
+        <i class="fas fa-moon"></i>
+        <i class="fas fa-star star-1"></i>
+        <i class="fas fa-star star-2"></i>
+      </div>
+
+      <!-- Night Moon & Stars -->
+      <div class="night-icons" *ngIf="isNight()">
+        <i class="fas fa-moon"></i>
+        <i class="fas fa-star star-1"></i>
+        <i class="fas fa-star star-2"></i>
+        <i class="fas fa-star star-3"></i>
+      </div>
+    </div>
+    <p class="time-text">{{ currentTime }}</p>
+  </div>
+
+  <!-- Calendar and Timeline Sections -->
+  <ion-row class="responsive-layout">
+    <!-- Calendar Section -->
+    <ion-col size="12" size-md="8">
+      <div class="calendar-wrapper">
+        <full-calendar [options]="calendarOptions"></full-calendar>
+      </div>
+    </ion-col>
+
+    <!-- Medication Timeline Section -->
+    <ion-col size="12" size-md="4">
+      <div class="medication-timeline">
+        <div class="timeline-header">
+          <h2>Medication Timeline</h2>
+          <ion-button fill="clear" (click)="toggleViewMode()">
+            <ion-icon
+              slot="start"
+              [name]="showAllMedications ? 'calendar-outline' : 'list-outline'"
+            ></ion-icon>
+            {{ showAllMedications ? 'Show Today' : 'Show All' }}
+          </ion-button>
+        </div>
+
+        <p class="selected-date" *ngIf="!showAllMedications">
+          {{ selectedDate | date:'mediumDate' }}
+        </p>
+        <p class="selected-date" *ngIf="showAllMedications">
+          Showing All Medications
+        </p>
+
+        <div *ngIf="allMedications.length > 0; else noMedications">
+          <div
+            *ngFor="let allMedication of allMedications"
+            class="medication-item"
+            [style.--medication-color]="allMedication.color_name"
+          >
+            <div class="medication-header">
+              <h2>{{ allMedication.medicine_name | uppercase }}</h2>
+            </div>
+            <div class="medication-details">
+              <span *ngIf="allMedication.scheduled_datetime" class="time">
+                {{ allMedication.scheduled_datetime | date:'short' }}
+              </span>
+            </div>
+            <div class="medication-actions">
+              <ion-button class="edit-button">
+                <ion-icon name="create-outline"></ion-icon>
+                EDIT
+              </ion-button>
+              <ion-button class="delete-button">
+                <ion-icon name="trash-outline"></ion-icon>
+                DELETE
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        <ng-template #noMedications>
+          <div class="no-medications">
+            <ion-icon name="calendar-clear-outline"></ion-icon>
+            <p>
+              {{ showAllMedications ? 'No medications added yet' : 'No
+              medications for this day' }}
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </ion-col>
+  </ion-row>
+
+  <!-- Show/Hide Medication Input Button -->
+  <ion-button expand="block" (click)="openAddReminderModal()">
+    Add Reminders
+  </ion-button>
+
+  <!-- Add Reminder Modal -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title
+            >{{ isEditing ? 'Edit Reminder Details' : 'Add Reminder Details'
+            }}</ion-title
+          >
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <!-- Color Selection -->
+        <div class="color-selection">
+          <div class="color-icons">
+            <span>Choose Color:</span>
+          </div>
+          <ion-item lines="none">
+            <ion-input
+              type="color"
+              [(ngModel)]="newMedication.color"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Medicine Information Section -->
+        <div class="section-title">
+          <h2>MEDICINE INFORMATIONS</h2>
+        </div>
+
+        <div class="form-section">
+          <!-- Medicine Form -->
+          <ion-label>Medicine Form</ion-label>
+          <div class="radio-group">
+            <ion-radio-group
+              [(ngModel)]="newMedication.form"
+              (ionChange)="onMedicineFormChange()"
+            >
+              <ion-item lines="none">
+                <ion-radio
+                  value="tablet"
+                  slot="start"
+                  [disabled]="isEditLimited"
+                ></ion-radio>
+                <ion-label>Tablet</ion-label>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-radio
+                  value="syrup"
+                  slot="start"
+                  [disabled]="isEditLimited"
+                ></ion-radio>
+                <ion-label>Syrup</ion-label>
+              </ion-item>
+            </ion-radio-group>
+          </div>
+
+          <!-- Medicine Name -->
+          <ion-item>
+            <ion-label position="stacked">Medicine Name</ion-label>
+            <ion-input
+              type="text"
+              [(ngModel)]="newMedication.name"
+              required
+              [disabled]="isEditLimited === true ? false : false"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Medicine Expiration Date -->
+          <ion-item>
+            <ion-label position="stacked">Medicine Expiration Date</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="newMedication.expiryDate"
+              [disabled]="isEditLimited === true ? false : false"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Intake Information Section -->
+        <div class="section-title">
+          <h2>INTAKE INFORMATIONS</h2>
+        </div>
+
+        <div class="form-section">
+          <!-- Starting Date -->
+          <ion-item>
+            <ion-label position="stacked">Starting Date</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="newMedication.startDate"
+              required
+              [disabled]="isEditLimited"
+            ></ion-input>
+          </ion-item>
+
+          <!-- End Date -->
+          <ion-item>
+            <ion-label position="stacked">End Date</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="newMedication.endDate"
+              required
+              [disabled]="isEditLimited"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Time Interval (per hours) -->
+          <ion-item>
+            <ion-label position="stacked"
+              >Time Interval <span>(per hours)</span></ion-label
+            >
+            <ion-input
+              type="number"
+              [(ngModel)]="newMedication.interval"
+              min="1"
+              placeholder="e.g., 8"
+              [disabled]="isEditLimited"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Quantity -->
+          <ion-item>
+            <ion-label position="stacked">Quantity</ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="newMedication.quantity"
+              placeholder="pcs"
+              [disabled]="isEditLimited || newMedication.form !== 'tablet'"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Measurement -->
+          <ion-item>
+            <ion-label position="stacked">Measurement</ion-label>
+            <ion-input
+              type="text"
+              [(ngModel)]="newMedication.measurement"
+              placeholder="e.g., mg, ml"
+              [disabled]="isEditLimited || newMedication.form !== 'syrup'"
+            ></ion-input>
+          </ion-item>
+
+          <!-- First Medicine Intake -->
+          <ion-item>
+            <ion-label position="stacked">First Medicine Intake</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="newMedication.startDate"
+              [disabled]="isEditLimited"
+            ></ion-input>
+            <ion-input
+              type="time"
+              [(ngModel)]="newMedication.time"
+              [disabled]="isEditLimited"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Dispenser Section -->
+        <div class="dispenser-section">
+          <span class="dispenser-title"
+            >Choose MediQnect Dispenser Compartment</span
+          >
+          <span class="dispenser-id">Dispenser ID: 3238913</span>
+          <ion-grid>
+            <ion-row>
+              <ion-col size="6">
+                <ion-radio-group [(ngModel)]="newMedication.container">
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'tablet'"
+                  >
+                    <ion-radio
+                      value="A1"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'tablet'"
+                    ></ion-radio>
+                    <ion-label>Tablet Container A1</ion-label>
+                  </ion-item>
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'tablet'"
+                  >
+                    <ion-radio
+                      value="A2"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'tablet'"
+                    ></ion-radio>
+                    <ion-label>Tablet Container A2</ion-label>
+                  </ion-item>
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'tablet'"
+                  >
+                    <ion-radio
+                      value="A3"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'tablet'"
+                    ></ion-radio>
+                    <ion-label>Tablet Container A3</ion-label>
+                  </ion-item>
+                </ion-radio-group>
+              </ion-col>
+              <ion-col size="6">
+                <ion-radio-group [(ngModel)]="newMedication.container">
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'syrup'"
+                  >
+                    <ion-radio
+                      value="B1"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'syrup'"
+                    ></ion-radio>
+                    <ion-label>Syrup Container B1</ion-label>
+                  </ion-item>
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'syrup'"
+                  >
+                    <ion-radio
+                      value="B2"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'syrup'"
+                    ></ion-radio>
+                    <ion-label>Syrup Container B2</ion-label>
+                  </ion-item>
+                  <ion-item
+                    lines="none"
+                    [class.faded]="newMedication.form !== 'syrup'"
+                  >
+                    <ion-radio
+                      value="B3"
+                      slot="start"
+                      [disabled]="isEditLimited || newMedication.form !== 'syrup'"
+                    ></ion-radio>
+                    <ion-label>Syrup Container B3</ion-label>
+                  </ion-item>
+                </ion-radio-group>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+
+        <!-- Submit Button -->
+        <ion-button
+          expand="block"
+          (click)="addMedication()"
+          class="submit-button"
+        >
+          {{ isEditing ? 'UPDATE' : 'SUBMIT' }}
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

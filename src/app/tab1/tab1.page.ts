@@ -34,6 +34,7 @@ interface Compartments {
 })
 export class Tab1Page {
   prescriptionModal = false;
+  tracker_step = 1;
 
   get token(): string {
     return localStorage.getItem('access_token') || '';
@@ -43,6 +44,7 @@ export class Tab1Page {
   components: Components[] = [];
   compartments: Compartments[] = [];
   schedules: any[] = [];
+  prescriptions: any[] = [];
 
   medicine_name: string = '';
   net_content: number = 0;
@@ -68,6 +70,10 @@ export class Tab1Page {
 
   closeAddPrescription() {
     this.prescriptionModal = false;
+  }
+
+  async nextStep() {
+    this.tracker_step = 2;
   }
 
   validatePrescriptionInputs() {
@@ -165,6 +171,25 @@ export class Tab1Page {
       if (response.status === 200) {
         this.schedules = response.data;
         console.log(this.schedules);
+      }
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+    }
+  }
+
+  async getPrescriptions() {
+    try {
+      const response = await axios.get(
+        `${environment.urls.api}/read/prescription`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        this.prescriptions = response.data;
+        console.log(this.prescriptions);
       }
     } catch (error) {
       console.error('Error fetching schedules:', error);
@@ -271,10 +296,32 @@ export class Tab1Page {
     }
   }
 
+  async deletePrescription(medicine_id: number) {
+    try {
+      const response = await axios.post(
+        `${environment.urls.api}/delete/prescription`,
+        {
+          medicine_id: medicine_id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        this.alertService.presentMessage('Success!', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+    }
+  }
+
   ngOnInit() {
     this.getMedicineForms();
     this.getDoseComponents();
     this.getCompartments();
     this.getSchedules();
+    this.getPrescriptions();
   }
 }
