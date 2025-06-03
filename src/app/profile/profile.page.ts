@@ -17,6 +17,7 @@ import axios from 'axios';
 })
 export class ProfilePage {
   user_data: any = {};
+  accounts: any = {};
 
   new_username: string = '';
   new_password: string = '';
@@ -24,9 +25,11 @@ export class ProfilePage {
   password: string = '';
 
   active = this.authService.getActiveAccount();
+  saved_account = this.authService.getAccounts().map(account => account.user);
 
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
+  isSwitchUserModalOpen = false;
 
   constructor(
     private router: Router,
@@ -50,6 +53,14 @@ export class ProfilePage {
 
   closeChangePasswordPopup() {
     this.showChangePasswordPopup = false;
+  }
+
+  openSwitchUserModal() {
+    this.isSwitchUserModalOpen = true;
+  }
+
+  closeSwitchUserModal() {
+    this.isSwitchUserModalOpen = false;
   }
 
   private resetUsernamePopup() {
@@ -108,6 +119,29 @@ export class ProfilePage {
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+    }
+  }
+
+  async getAccounts() {
+    try {
+      if (!this.saved_account) {
+        console.log('No account/s yet.');
+        return;
+      }
+
+      console.log('Accounts', this.saved_account);
+
+      const response = await axios.post(
+        `${environment.urls.api}/get/accounts`,
+        {
+          ids: this.saved_account,
+        }
+      );
+      if (response.status === 200 || response.status === 201) {
+        this.accounts = response.data;
+      }
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
     }
   }
 
@@ -292,5 +326,6 @@ export class ProfilePage {
 
   ngOnInit() {
     this.getUserData();
+    this.getAccounts();
   }
 }

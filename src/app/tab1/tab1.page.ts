@@ -76,7 +76,11 @@ export class Tab1Page {
   }
 
   async nextStep() {
-    this.tracker_step = 2;
+    if (this.tracker_step === 1) {
+      this.tracker_step = 2;
+    } else {
+      this.tracker_step = 1;
+    }
   }
 
   validatePrescriptionInputs() {
