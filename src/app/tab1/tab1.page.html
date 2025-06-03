@@ -55,7 +55,7 @@
               <div class="medication-actions">
                 <ion-button
                   class="delete-button"
-                  (click)="deleteSchedule(schedule.intake_id, schedule.schedule_id)"
+                  (click)="isDeleteSchedule(schedule.intake_id, schedule.schedule_id)"
                 >
                   <ion-icon name="trash-outline"></ion-icon>
                   DELETE
@@ -95,7 +95,7 @@
                 </ion-button>
                 <ion-button
                   class="delete-button"
-                  (click)="deletePrescription(prescription.medicine_id)"
+                  (click)="isDeletePrescription(prescription.medicine_id)"
                 >
                   <ion-icon name="trash-outline"></ion-icon>
                   DELETE

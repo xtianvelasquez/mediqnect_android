@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { WebsocketService } from './services/websocket.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -8,14 +9,15 @@ import { WebsocketService } from './services/websocket.service';
   standalone: false,
 })
 export class AppComponent {
-  get token(): string {
-    return localStorage.getItem('access_token') || '';
-  }
+  active = this.authService.getActiveAccount();
 
-  constructor(private websocketService: WebsocketService) {}
+  constructor(
+    private websocketService: WebsocketService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    if (this.token) {
+    if (this.active?.access_token && this.active?.user) {
       this.websocketService.connectWebSocket();
     } else {
       console.log('No token found, WebSocket will not start.');

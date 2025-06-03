@@ -8,6 +8,7 @@ import { AlertController } from '@ionic/angular/standalone';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
+import { LoadService } from '../services/load.service';
 import axios from 'axios';
 
 interface History {
@@ -40,7 +41,8 @@ export class Tab3Page {
     private router: Router,
     private alertController: AlertController,
     private alertService: AlertService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadService: LoadService
   ) {}
 
   profile() {
@@ -254,6 +256,8 @@ export class Tab3Page {
         return;
       }
 
+      this.loadService.showLoading('Updating...');
+
       const response = await axios.post(
         `${environment.urls.api}/update/history`,
         {
@@ -296,6 +300,8 @@ export class Tab3Page {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 

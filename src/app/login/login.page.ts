@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
+import { LoadService } from '../services/load.service';
 import axios from 'axios';
 
 @Component({
@@ -18,7 +19,8 @@ export class LoginPage {
   constructor(
     private router: Router,
     private alertService: AlertService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadService: LoadService
   ) {}
 
   signup() {
@@ -34,6 +36,8 @@ export class LoginPage {
         );
         return;
       }
+
+      this.loadService.showLoading('Logging in...');
 
       const response = await axios.post(`${environment.urls.api}/token`, {
         username: this.username,
@@ -72,6 +76,8 @@ export class LoginPage {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 }

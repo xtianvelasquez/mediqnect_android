@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
+import { LoadService } from '../services/load.service';
 import axios from 'axios';
 
 @Component({
@@ -18,7 +19,11 @@ export class SignupPage {
 
   signupStep = 1;
 
-  constructor(private router: Router, private alertService: AlertService) {}
+  constructor(
+    private router: Router,
+    private alertService: AlertService,
+    private loadService: LoadService
+  ) {}
 
   login() {
     this.router.navigate(['/login']);
@@ -55,6 +60,7 @@ export class SignupPage {
   }
 
   async signup() {
+    this.loadService.showLoading('Signing up...');
     try {
       const response = await axios.post(`${environment.urls.api}/signup`, {
         username: this.username.trim(),
@@ -89,6 +95,8 @@ export class SignupPage {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 }

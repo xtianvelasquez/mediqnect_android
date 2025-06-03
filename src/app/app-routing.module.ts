@@ -30,12 +30,8 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: localStorage.getItem('access_token') ? '/tabs/tab2' : '/login',
+    redirectTo: '/login',
     pathMatch: 'full',
-  },
-  {
-    path: 'calendar',
-    loadChildren: () => import('./calendar/calendar.module').then( m => m.CalendarPageModule)
   },
 ];
 @NgModule({

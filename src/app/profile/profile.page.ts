@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
+import { LoadService } from '../services/load.service';
 import axios from 'axios';
 
 @Component({
@@ -25,16 +26,18 @@ export class ProfilePage {
   password: string = '';
 
   active = this.authService.getActiveAccount();
-  saved_account = this.authService.getAccounts().map(account => account.user);
+  saved_account = this.authService.getAccounts().map((account) => account.user);
 
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
   isSwitchUserModalOpen = false;
+  isDisabled = false;
 
   constructor(
     private router: Router,
     private alertService: AlertService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadService: LoadService
   ) {}
 
   openChangeUsernamePopup() {
@@ -97,6 +100,16 @@ export class ProfilePage {
     return null;
   }
 
+  switchToUser(user_id: string) {
+    if (this.accounts.user === user_id) {
+      this.isDisabled = true;
+    } else {
+      this.isDisabled = false;
+    }
+
+    this.authService.switchAccount(user_id);
+  }
+
   async getUserData() {
     try {
       if (!this.active?.access_token && !this.active?.user) {
@@ -125,11 +138,8 @@ export class ProfilePage {
   async getAccounts() {
     try {
       if (!this.saved_account) {
-        console.log('No account/s yet.');
         return;
       }
-
-      console.log('Accounts', this.saved_account);
 
       const response = await axios.post(
         `${environment.urls.api}/get/accounts`,
@@ -161,6 +171,8 @@ export class ProfilePage {
         await this.alertService.presentMessage('Error!', input_error);
         return;
       }
+
+      this.loadService.showLoading('Please wait...');
 
       const response = await axios.post(
         `${environment.urls.api}/update/username`,
@@ -204,6 +216,8 @@ export class ProfilePage {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -223,6 +237,8 @@ export class ProfilePage {
         await this.alertService.presentMessage('Error!', input_error);
         return;
       }
+
+      this.loadService.showLoading('Please wait...');
 
       const response = await axios.post(
         `${environment.urls.api}/update/password`,
@@ -266,6 +282,8 @@ export class ProfilePage {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -280,6 +298,8 @@ export class ProfilePage {
         return;
       }
 
+      this.loadService.showLoading('Logging out...');
+
       const response = await axios.post(
         `${environment.urls.api}/logout`,
         {},
@@ -291,12 +311,8 @@ export class ProfilePage {
       );
 
       if (response.status === 204) {
-        await this.alertService.presentMessage(
-          'Success!',
-          response.data.message
-        );
-        localStorage.removeItem('access_token');
-        this.router.navigate(['/login']);
+        this.authService.removeAccount(this.active.user);
+        window.location.reload();
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -321,6 +337,8 @@ export class ProfilePage {
           'An unexpected error occured. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 

@@ -3,9 +3,11 @@ import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AlertController } from '@ionic/angular';
 import { AlertService } from '../services/alert.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
+import { LoadService } from '../services/load.service';
 import axios from 'axios';
 
 interface Forms {
@@ -59,8 +61,10 @@ export class Tab1Page {
 
   constructor(
     private router: Router,
+    private alertController: AlertController,
     private alertService: AlertService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadService: LoadService
   ) {}
 
   profile() {
@@ -121,6 +125,50 @@ export class Tab1Page {
       return 'The duration between start and end is too long. Maximum schedule duration is 30 days.';
 
     return null;
+  }
+
+  isDeleteSchedule(intake_id: number, schedule_id: number) {
+    this.alertController
+      .create({
+        header: 'Confirm Deletion',
+        message: 'This schedule will be deleted permanently.',
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel',
+          },
+          {
+            text: 'Yes',
+            handler: () => {
+              this.deleteSchedule(intake_id, schedule_id);
+            },
+          },
+        ],
+        mode: 'md',
+      })
+      .then((alert) => alert.present());
+  }
+
+  isDeletePrescription(medicine_id: number) {
+    this.alertController
+      .create({
+        header: 'Confirm Deletion',
+        message: 'This medication will be deleted permanently.',
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel',
+          },
+          {
+            text: 'Yes',
+            handler: () => {
+              this.deletePrescription(medicine_id);
+            },
+          },
+        ],
+        mode: 'md',
+      })
+      .then((alert) => alert.present());
   }
 
   async getMedicineForms() {
@@ -251,6 +299,8 @@ export class Tab1Page {
         ? new Date(this.expiration_date).toISOString().slice(0, 10)
         : null;
 
+      this.loadService.showLoading('Generating schedule/s...');
+
       const response = await axios.post(
         `${environment.urls.api}/create/prescription`,
         {
@@ -303,6 +353,8 @@ export class Tab1Page {
           'An unexpected error occurred. Please try again later.'
         );
       }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -316,6 +368,8 @@ export class Tab1Page {
         this.router.navigate(['/login']);
         return;
       }
+
+      this.loadService.showLoading('Deleting schedule...');
 
       const response = await axios.post(
         `${environment.urls.api}/delete/schedule`,
@@ -333,7 +387,26 @@ export class Tab1Page {
         this.alertService.presentMessage('Success!', response.data.message);
       }
     } catch (error) {
-      console.error('Error fetching schedules:', error);
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const detail = error.response.data?.detail || 'An error occurred.';
+          this.alertService.presentError(detail);
+        } else if (error.request) {
+          this.alertService.presentMessage(
+            'Network Error!',
+            'Could not reach the server. Check your internet connection or try again later.'
+          );
+        } else {
+          this.alertService.presentError(error.message);
+        }
+      } else {
+        this.alertService.presentMessage(
+          'Error!',
+          'An unexpected error occurred. Please try again later.'
+        );
+      }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -347,6 +420,8 @@ export class Tab1Page {
         this.router.navigate(['/login']);
         return;
       }
+
+      this.loadService.showLoading('Deleting medication...');
 
       const response = await axios.post(
         `${environment.urls.api}/delete/prescription`,
@@ -363,7 +438,26 @@ export class Tab1Page {
         this.alertService.presentMessage('Success!', response.data.message);
       }
     } catch (error) {
-      console.error('Error fetching schedules:', error);
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const detail = error.response.data?.detail || 'An error occurred.';
+          this.alertService.presentError(detail);
+        } else if (error.request) {
+          this.alertService.presentMessage(
+            'Network Error!',
+            'Could not reach the server. Check your internet connection or try again later.'
+          );
+        } else {
+          this.alertService.presentError(error.message);
+        }
+      } else {
+        this.alertService.presentMessage(
+          'Error!',
+          'An unexpected error occurred. Please try again later.'
+        );
+      }
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 

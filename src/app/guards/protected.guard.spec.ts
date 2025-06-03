@@ -19,12 +19,10 @@ describe('ProtectedGuard', () => {
   });
 
   it('should allow access if token exists', () => {
-    localStorage.setItem('access_token', 'test_token');
     expect(guard.canActivate()).toBeTrue();
   });
 
   it('should deny access if no token exists', () => {
-    localStorage.removeItem('access_token');
     expect(guard.canActivate()).toBeFalse();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
   });

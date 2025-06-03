@@ -19,13 +19,11 @@ describe('AuthGuard', () => {
   });
 
   it('should deny access if token exists (redirect to dashboard)', () => {
-    localStorage.setItem('access_token', 'test_token');
     expect(guard.canActivate()).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']); // Redirect authenticated users
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/tabs']); // Redirect authenticated users
   });
 
   it('should allow access if no token exists', () => {
-    localStorage.removeItem('access_token');
     expect(guard.canActivate()).toBeTrue();
   });
 });

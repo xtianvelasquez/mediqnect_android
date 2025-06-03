@@ -153,7 +153,12 @@
 
         <div *ngIf="accounts.length > 0; else noAccounts">
           <ion-list>
-            <ion-item *ngFor="let account of accounts">
+            <ion-item
+              *ngFor="let account of accounts"
+              button
+              [disabled]="isDisabled"
+              (click)="switchToUser(account.user_id)"
+            >
               <ion-icon
                 name="person-circle-outline"
                 class="user-icon"
