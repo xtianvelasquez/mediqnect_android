@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { IonicModule } from '@ionic/angular';
 import { AlertService } from '../services/alert.service';
-import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({
@@ -24,9 +24,6 @@ export class ProfilePage {
   new_password: string = '';
   confirm_password: string = '';
   password: string = '';
-
-  active = this.authService.getActiveAccount();
-  saved_account = this.authService.getAccounts().map((account) => account.user);
 
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
@@ -110,9 +107,33 @@ export class ProfilePage {
     this.authService.switchAccount(user_id);
   }
 
+  async getAccounts() {
+    try {
+      const saved_account = await this.authService.getAccounts();
+
+      if (!saved_account) {
+        return;
+      }
+
+      const response = await axios.post(
+        `${environment.urls.api}/get/accounts`,
+        {
+          ids: saved_account,
+        }
+      );
+      if (response.status === 200 || response.status === 201) {
+        this.accounts = response.data;
+      }
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    }
+  }
+
   async getUserData() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -123,7 +144,7 @@ export class ProfilePage {
 
       const response = await axios.get(`${environment.urls.api}/read/user`, {
         headers: {
-          Authorization: `Bearer ${this.active.access_token}`,
+          Authorization: `Bearer ${active.access_token}`,
         },
       });
 
@@ -135,29 +156,11 @@ export class ProfilePage {
     }
   }
 
-  async getAccounts() {
-    try {
-      if (!this.saved_account) {
-        return;
-      }
-
-      const response = await axios.post(
-        `${environment.urls.api}/get/accounts`,
-        {
-          ids: this.saved_account,
-        }
-      );
-      if (response.status === 200 || response.status === 201) {
-        this.accounts = response.data;
-      }
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-    }
-  }
-
   async saveUsernameChange() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -182,7 +185,7 @@ export class ProfilePage {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -223,10 +226,12 @@ export class ProfilePage {
 
   async savePasswordChange() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
-          'No access token found'
+          'No access token found.'
         );
         this.router.navigate(['/login']);
         return;
@@ -248,7 +253,7 @@ export class ProfilePage {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -289,7 +294,9 @@ export class ProfilePage {
 
   async logout() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -305,13 +312,13 @@ export class ProfilePage {
         {},
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
 
       if (response.status === 204) {
-        this.authService.removeAccount(this.active.user);
+        this.authService.removeAccount(active.user);
         window.location.reload();
       }
     } catch (error) {

@@ -1,14 +1,14 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 import { AlertController } from '@ionic/angular/standalone';
 import { AlertService } from '../services/alert.service';
-import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 interface History {
@@ -37,8 +37,8 @@ export class Tab3Page {
   active = this.authService.getActiveAccount();
 
   constructor(
-    private datePipe: DatePipe,
     private router: Router,
+    private datePipe: DatePipe,
     private alertController: AlertController,
     private alertService: AlertService,
     private authService: AuthService,
@@ -207,7 +207,9 @@ export class Tab3Page {
 
   async getHistories() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -220,7 +222,7 @@ export class Tab3Page {
         `${environment.urls.api}/read/histories`,
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -239,18 +241,12 @@ export class Tab3Page {
     history_id: number
   ) {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
-        );
-        this.router.navigate(['/login']);
-        return;
-      }
-      if (!this.active.access_token) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found'
         );
         this.router.navigate(['/login']);
         return;
@@ -267,7 +263,7 @@ export class Tab3Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );

@@ -1,25 +1,26 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProtectedGuard implements CanActivate {
-  active = this.authService.getActiveAccount();
-
   constructor(private router: Router, private authService: AuthService) {}
 
   async canActivate(): Promise<boolean> {
-    if (!this.active?.access_token && !this.active?.user) {
+    const active = await this.authService.getActiveAccount();
+
+    if (!active?.access_token || !active?.user) {
       this.router.navigate(['/login']);
       return false;
     }
 
     try {
-      const response = await axios.get('http://localhost:8000/protected', {
-        headers: { Authorization: `Bearer ${this.active.access_token}` },
+      const response = await axios.get(`${environment.urls.api}/protected`, {
+        headers: { Authorization: `Bearer ${active.access_token}` },
       });
 
       if (response.status === 200) {
@@ -34,7 +35,7 @@ export class ProtectedGuard implements CanActivate {
           error.response?.status === 404 ||
           error.response?.status === 500
         ) {
-          this.authService.removeAccount(this.active.user);
+          this.authService.removeAccount(active.user);
           this.router.navigate(['/login']);
         }
       } else {
@@ -46,7 +47,7 @@ export class ProtectedGuard implements CanActivate {
     }
 
     // Ensure cleanup for any failed authentication cases
-    this.authService.removeAccount(this.active.user);
+    this.authService.removeAccount(active.user);
     this.router.navigate(['/login']);
     return false;
   }

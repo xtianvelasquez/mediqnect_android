@@ -8,8 +8,8 @@ import { AuthService } from '../services/auth.service';
 export class AuthGuard implements CanActivate {
   constructor(private router: Router, private authService: AuthService) {}
 
-  canActivate(): boolean {
-    const active = this.authService.getActiveAccount();
+  async canActivate(): Promise<boolean> {
+    const active = await this.authService.getActiveAccount();
 
     if (active && active.access_token) {
       this.router.navigate(['/tabs']);

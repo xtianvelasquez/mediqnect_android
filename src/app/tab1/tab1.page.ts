@@ -1,13 +1,13 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { IonicModule } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
 import { AlertService } from '../services/alert.service';
-import { environment } from 'src/environments/environment';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 interface Forms {
@@ -27,6 +27,26 @@ interface Compartments {
   set_name: string;
 }
 
+interface Schedules {
+  user_id: number;
+  intake_id: number;
+  scheduled_datetime: Date;
+  schedule_id: number;
+  medicine_name: string;
+  color_name: string;
+}
+
+interface Prescriptions {
+  user_id: number;
+  intake_id: number;
+  start_datetime: Date;
+  end_datetime: Date;
+  medicine_id: number;
+  medicine_name: string;
+  color_name: string;
+  status_name: string;
+}
+
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
@@ -44,8 +64,8 @@ export class Tab1Page {
   forms: Forms[] = [];
   components: Components[] = [];
   compartments: Compartments[] = [];
-  schedules: any[] = [];
-  prescriptions: any[] = [];
+  schedules: Schedules[] = [];
+  prescriptions: Prescriptions[] = [];
 
   medicine_name: string = '';
   net_content: number = 0;
@@ -213,7 +233,9 @@ export class Tab1Page {
 
   async getSchedules() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -226,7 +248,7 @@ export class Tab1Page {
         `${environment.urls.api}/read/schedules`,
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -241,7 +263,9 @@ export class Tab1Page {
 
   async getPrescriptions() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -254,7 +278,7 @@ export class Tab1Page {
         `${environment.urls.api}/read/prescription`,
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -269,7 +293,9 @@ export class Tab1Page {
 
   async addPrescription() {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -326,7 +352,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -360,7 +386,9 @@ export class Tab1Page {
 
   async deleteSchedule(intake_id: number, schedule_id: number) {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -379,7 +407,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
@@ -412,7 +440,9 @@ export class Tab1Page {
 
   async deletePrescription(medicine_id: number) {
     try {
-      if (!this.active?.access_token && !this.active?.user) {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
         await this.alertService.presentMessage(
           'Error!',
           'No access token found.'
@@ -430,7 +460,7 @@ export class Tab1Page {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.active.access_token}`,
+            Authorization: `Bearer ${active.access_token}`,
           },
         }
       );
