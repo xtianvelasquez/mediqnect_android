@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
-import { environment } from 'src/environments/environment';
 import { LoadService } from '../services/load.service';
+import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
 @Component({

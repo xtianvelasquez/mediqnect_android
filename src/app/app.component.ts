@@ -11,8 +11,6 @@ import { LocalNotifications } from '@awesome-cordova-plugins/local-notifications
   standalone: false,
 })
 export class AppComponent {
-  active = this.authService.getActiveAccount();
-
   constructor(
     private websocketService: WebsocketService,
     private platform: Platform,
@@ -20,6 +18,7 @@ export class AppComponent {
     private localNotifications: LocalNotifications
   ) {
     this.requestNotificationPermission();
+
     this.platform.ready().then(() => {
       if (this.platform.is('ios')) {
         this.requestNotificationPermission();
