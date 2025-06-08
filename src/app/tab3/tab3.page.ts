@@ -8,8 +8,7 @@ import { AlertController } from '@ionic/angular/standalone';
 import { AlertService } from '../services/alert.service';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
-import { environment } from 'src/environments/environment';
-import axios from 'axios';
+import { MainService } from '../api/main.service';
 
 interface History {
   schedule_id: number;
@@ -34,15 +33,14 @@ export class Tab3Page {
 
   segment: string = 'completed';
 
-  active = this.authService.getActiveAccount();
-
   constructor(
     private router: Router,
     private datePipe: DatePipe,
     private alertController: AlertController,
     private alertService: AlertService,
     private authService: AuthService,
-    private loadService: LoadService
+    private loadService: LoadService,
+    private mainService: MainService
   ) {}
 
   profile() {
@@ -135,7 +133,7 @@ export class Tab3Page {
         inputs: [
           {
             type: 'radio',
-            label: `Same Time As Scheduled (${formatted_datetime})`,
+            label: `Same time as scheduled (${formatted_datetime})`,
             value: scheduled_datetime,
             checked: true,
           },
@@ -210,28 +208,16 @@ export class Tab3Page {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      const response = await axios.get(
-        `${environment.urls.api}/read/histories`,
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-        this.histories = response.data;
-        console.log(this.histories);
-      }
-    } catch (error) {
-      console.error('Error fetching histories:', error);
+      const response = await this.mainService.getHistories(active.access_token);
+      this.histories = response;
+      console.log(this.histories);
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     }
   }
 
@@ -244,58 +230,23 @@ export class Tab3Page {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      this.loadService.showLoading('Updating...');
+      this.loadService.showLoading('Please wait...');
 
-      const response = await axios.post(
-        `${environment.urls.api}/update/history`,
-        {
-          schedule_id: schedule_id,
-          history_datetime: data_datetime,
-          history_id: history_id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
+      const response = await this.mainService.updateMissedMedication(
+        active.access_token,
+        schedule_id,
+        data_datetime,
+        history_id
       );
-      if (response.status === 200) {
-        await this.alertService.presentMessage(
-          'Success!',
-          response.data.message
-        );
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      await this.alertService.presentMessage(response);
+      this.getHistories();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }

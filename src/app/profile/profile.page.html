@@ -18,6 +18,7 @@
   <div class="user-section">
     <ion-icon name="person-circle-outline" class="user-icon"></ion-icon>
     <div class="username">{{ user_data.username || 'User Name' }}</div>
+    <p>{{ user_data.dispenser_code || 'no dispenser' }}</p>
   </div>
 
   <ion-item button (click)="openChangeUsernamePopup()">
@@ -156,7 +157,6 @@
             <ion-item
               *ngFor="let account of accounts"
               button
-              [disabled]="isDisabled"
               (click)="switchToUser(account.user_id)"
             >
               <ion-icon
@@ -164,6 +164,11 @@
                 class="user-icon"
               ></ion-icon>
               <ion-label>{{ account.username }}</ion-label>
+            </ion-item>
+
+            <ion-item button (click)="openAddUserPopup()">
+              <ion-icon slot="start" name="person-add-outline"></ion-icon>
+              <ion-label>Add Account</ion-label>
             </ion-item>
           </ion-list>
         </div>
@@ -176,6 +181,49 @@
       <p>No account/s yet.</p>
     </div>
   </ng-template>
+
+  <ion-modal
+    [isOpen]="showAddUserPopup"
+    (didDismiss)="closeAddUserPopup()"
+    cssClass="add-user-modal"
+  >
+    <ng-template>
+      <ion-content scroll="false" class="ion-padding">
+        <ion-toolbar>
+          <ion-title>Add Account</ion-title>
+        </ion-toolbar>
+
+        <form (ngSubmit)="addNewAccount()" #addUserForm="ngForm" novalidate>
+          <label class="input-label">Username</label>
+          <div class="input-box">
+            <ion-input
+              id="username"
+              [(ngModel)]="username"
+              name="username"
+              required
+            ></ion-input>
+          </div>
+
+          <label class="input-label">Password</label>
+          <div class="input-box">
+            <ion-input
+              id="password"
+              [(ngModel)]="password"
+              name="password"
+              type="password"
+              required
+            ></ion-input>
+          </div>
+          <div class="button-row">
+            <ion-button color="danger" (click)="closeAddUserPopup()"
+              >Cancel</ion-button
+            >
+            <ion-button type="submit">Add</ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
   <!-- Logout -->
   <div class="logout-button">

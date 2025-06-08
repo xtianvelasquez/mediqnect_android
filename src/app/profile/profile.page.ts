@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { AlertService } from '../services/alert.service';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
+import { EntryService } from '../api/entry.service';
 import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
@@ -20,6 +21,7 @@ export class ProfilePage {
   user_data: any = {};
   accounts: any = {};
 
+  username: string = '';
   new_username: string = '';
   new_password: string = '';
   confirm_password: string = '';
@@ -28,13 +30,14 @@ export class ProfilePage {
   showChangeUsernamePopup = false;
   showChangePasswordPopup = false;
   isSwitchUserModalOpen = false;
-  isDisabled = false;
+  showAddUserPopup = false;
 
   constructor(
     private router: Router,
     private alertService: AlertService,
     private authService: AuthService,
-    private loadService: LoadService
+    private loadService: LoadService,
+    private entryService: EntryService
   ) {}
 
   openChangeUsernamePopup() {
@@ -63,6 +66,15 @@ export class ProfilePage {
     this.isSwitchUserModalOpen = false;
   }
 
+  openAddUserPopup() {
+    this.resetAddUserPopup();
+    this.showAddUserPopup = true;
+  }
+
+  closeAddUserPopup() {
+    this.showAddUserPopup = false;
+  }
+
   private resetUsernamePopup() {
     this.new_username = '';
     this.password = '';
@@ -71,6 +83,11 @@ export class ProfilePage {
   private resetPasswordPopup() {
     this.new_password = '';
     this.confirm_password = '';
+    this.password = '';
+  }
+
+  private resetAddUserPopup() {
+    this.username = '';
     this.password = '';
   }
 
@@ -97,14 +114,63 @@ export class ProfilePage {
     return null;
   }
 
-  switchToUser(user_id: string) {
-    if (this.accounts.user === user_id) {
-      this.isDisabled = true;
-    } else {
-      this.isDisabled = false;
-    }
+  async switchToUser(user_id: string) {
+    this.loadService.showLoading('Loading profile...');
+    try {
+      const active = await this.authService.getActiveAccount();
 
-    this.authService.switchAccount(user_id);
+      if (user_id === active?.user) {
+        await this.alertService.presentError(
+          "You're already using this account."
+        );
+        return;
+      }
+
+      this.authService.switchAccount(user_id);
+      window.location.reload();
+    } catch (error) {
+      console.error('Account switch failed:', error);
+      await this.alertService.presentError(
+        'Failed to switch account. Please try again later.'
+      );
+    } finally {
+      this.loadService.hideLoading();
+    }
+  }
+
+  async addNewAccount() {
+    this.loadService.showLoading('Adding profile...');
+    try {
+      const saved_account = await this.authService.getAccounts();
+
+      if (saved_account.length > 6) {
+        await this.alertService.presentError(
+          'Maximum account limit reached. You can only save 6 accounts for quick switching.'
+        );
+        return;
+      }
+
+      if (!this.username || !this.password) {
+        await this.alertService.presentError(
+          'Please fill in the necessary field.'
+        );
+        return;
+      }
+
+      const response = await this.entryService.login(
+        this.username,
+        this.password
+      );
+
+      // Process login success
+      this.authService.addAccount(response.user, response.access_token);
+      this.authService.switchAccount(response.user);
+      window.location.reload();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    } finally {
+      this.loadService.hideLoading();
+    }
   }
 
   async getAccounts() {
@@ -121,6 +187,7 @@ export class ProfilePage {
           ids: saved_account,
         }
       );
+
       if (response.status === 200 || response.status === 201) {
         this.accounts = response.data;
       }
@@ -134,25 +201,15 @@ export class ProfilePage {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      const response = await axios.get(`${environment.urls.api}/read/user`, {
-        headers: {
-          Authorization: `Bearer ${active.access_token}`,
-        },
-      });
-
-      if (response.status === 200 || response.status === 201) {
-        this.user_data = response.data;
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+      const response = await this.entryService.getUserData(active.access_token);
+      this.user_data = response;
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     }
   }
 
@@ -161,64 +218,29 @@ export class ProfilePage {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
       const input_error = this.validateUsernameChangeInput();
       if (input_error) {
-        await this.alertService.presentMessage('Error!', input_error);
+        await this.alertService.presentError(input_error);
         return;
       }
 
       this.loadService.showLoading('Please wait...');
 
-      const response = await axios.post(
-        `${environment.urls.api}/update/username`,
-        {
-          username: this.new_username,
-          password: this.password,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
+      const response = await this.entryService.saveUsernameChange(
+        active.access_token,
+        this.new_username,
+        this.password
       );
 
-      if (response.status === 200 || response.status === 201) {
-        await this.alertService.presentMessage(
-          'Success!',
-          response.data.message
-        );
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      await this.alertService.presentMessage(response);
+      this.getUserData();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }
@@ -229,64 +251,27 @@ export class ProfilePage {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
       const input_error = this.validatePasswordChangeInput();
       if (input_error) {
-        await this.alertService.presentMessage('Error!', input_error);
+        await this.alertService.presentError(input_error);
         return;
       }
 
       this.loadService.showLoading('Please wait...');
 
-      const response = await axios.post(
-        `${environment.urls.api}/update/password`,
-        {
-          new_password: this.new_password,
-          password: this.password,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
+      const response = await this.entryService.savePasswordChange(
+        active.access_token,
+        this.new_password,
+        this.password
       );
-
-      if (response.status === 200 || response.status === 201) {
-        await this.alertService.presentMessage(
-          'Success!',
-          response.data.message
-        );
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      await this.alertService.presentMessage(response);
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }
@@ -297,53 +282,19 @@ export class ProfilePage {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
       this.loadService.showLoading('Logging out...');
 
-      const response = await axios.post(
-        `${environment.urls.api}/logout`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
-      );
-
-      if (response.status === 204) {
-        this.authService.removeAccount(active.user);
-        window.location.reload();
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      const response = await this.entryService.logout(active.access_token);
+      this.authService.removeAccount(active.user);
+      console.log(response);
+      window.location.reload();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }

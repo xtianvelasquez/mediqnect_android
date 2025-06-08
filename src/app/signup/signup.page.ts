@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { LoadService } from '../services/load.service';
-import { environment } from 'src/environments/environment';
-import axios from 'axios';
+import { EntryService } from '../api/entry.service';
 
 @Component({
   selector: 'app-signup',
@@ -15,14 +14,15 @@ export class SignupPage {
   username: string = '';
   password: string = '';
   confirm_password: string = '';
-  dispenser_code: String | null = null;
+  dispenser_code: string = '';
 
   signupStep = 1;
 
   constructor(
     private router: Router,
     private alertService: AlertService,
-    private loadService: LoadService
+    private loadService: LoadService,
+    private entryService: EntryService
   ) {}
 
   login() {
@@ -52,7 +52,7 @@ export class SignupPage {
   async nextStep() {
     const input_error = this.validateSignupInput();
     if (input_error) {
-      await this.alertService.presentMessage('Error!', input_error);
+      await this.alertService.presentError(input_error);
       return;
     }
 
@@ -62,39 +62,16 @@ export class SignupPage {
   async signup() {
     this.loadService.showLoading('Signing up...');
     try {
-      const response = await axios.post(`${environment.urls.api}/signup`, {
-        username: this.username.trim(),
-        password: this.password.trim(),
-        dispenser_code: this.dispenser_code,
-      });
+      const response = await this.entryService.signup(
+        this.username,
+        this.password,
+        this.dispenser_code
+      );
 
-      if (response.status === 200 || response.status === 201) {
-        this.alertService.presentMessage('Success!', response.data.message);
-        this.router.navigate(['/login']);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      await this.alertService.presentMessage(response);
+      this.router.navigate(['/login']);
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }

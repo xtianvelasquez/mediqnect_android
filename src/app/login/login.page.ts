@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertService } from '../services/alert.service';
 import { AuthService } from '../services/auth.service';
 import { LoadService } from '../services/load.service';
+import { EntryService } from '../api/entry.service';
 import { environment } from 'src/environments/environment';
 import axios from 'axios';
 
@@ -13,6 +14,8 @@ import axios from 'axios';
   standalone: false,
 })
 export class LoginPage {
+  accounts: any = {};
+
   username: string = '';
   password: string = '';
 
@@ -20,7 +23,8 @@ export class LoginPage {
     private router: Router,
     private alertService: AlertService,
     private authService: AuthService,
-    private loadService: LoadService
+    private loadService: LoadService,
+    private entryService: EntryService
   ) {}
 
   signup() {
@@ -30,8 +34,7 @@ export class LoginPage {
   async login() {
     try {
       if (!this.username || !this.password) {
-        await this.alertService.presentMessage(
-          'Error!',
+        await this.alertService.presentError(
           'Please fill in the necessary field.'
         );
         return;
@@ -39,45 +42,59 @@ export class LoginPage {
 
       this.loadService.showLoading('Logging in...');
 
-      const response = await axios.post(`${environment.urls.api}/token`, {
-        username: this.username,
-        password: this.password,
-      });
+      const response = await this.entryService.login(
+        this.username,
+        this.password
+      );
 
-      if (response.status === 200 || response.status === 201) {
-        this.authService.addAccount(
-          response.data.user,
-          response.data.access_token
-        );
-        this.authService.switchAccount(response.data.user);
-        console.log('Login successful!');
-        this.router.navigate(['/tabs/tab2']);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          const detail = error.response.data?.detail;
-
-          console.error('Status:', status);
-          console.error('Detail:', detail);
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occured. Please try again later.'
-        );
-      }
+      // Process login success
+      this.authService.addAccount(response.user, response.access_token);
+      this.authService.switchAccount(response.user);
+      console.log('Login successful!');
+      window.location.reload();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     } finally {
       this.loadService.hideLoading();
     }
+  }
+
+  async getAccounts() {
+    try {
+      const saved_account = await this.authService.getAccounts();
+
+      if (!saved_account) {
+        return;
+      }
+
+      const response = await axios.post(
+        `${environment.urls.api}/get/accounts`,
+        {
+          ids: saved_account,
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        this.accounts = response.data;
+      }
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    }
+  }
+
+  async switchToUser(user_id: string) {
+    try {
+      this.authService.switchAccount(user_id);
+      window.location.reload();
+    } catch (error) {
+      console.error('Account switch failed:', error);
+      await this.alertService.presentError(
+        'Failed to switch account. Please try again later.'
+      );
+    }
+  }
+
+  ngOnInit() {
+    this.getAccounts();
   }
 }

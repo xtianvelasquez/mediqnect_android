@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
 import { AlertService } from '../services/alert.service';
 import { AuthService } from '../services/auth.service';
+import { MainService } from '../api/main.service';
 import { LoadService } from '../services/load.service';
 import { environment } from 'src/environments/environment';
 import axios from 'axios';
@@ -43,6 +44,8 @@ interface Prescriptions {
   end_datetime: Date;
   medicine_id: number;
   medicine_name: string;
+  net_content: number;
+  expiration_date: Date;
   color_name: string;
   status_name: string;
 }
@@ -57,9 +60,9 @@ interface Prescriptions {
 })
 export class Tab1Page {
   prescriptionModal = false;
+  editMedicineModal = false;
   tracker_step = 1;
-
-  active = this.authService.getActiveAccount();
+  tracker_name = 'Show Medicines';
 
   forms: Forms[] = [];
   components: Components[] = [];
@@ -84,7 +87,8 @@ export class Tab1Page {
     private alertController: AlertController,
     private alertService: AlertService,
     private authService: AuthService,
-    private loadService: LoadService
+    private loadService: LoadService,
+    private mainService: MainService
   ) {}
 
   profile() {
@@ -99,11 +103,43 @@ export class Tab1Page {
     this.prescriptionModal = false;
   }
 
+  openEditMedicine() {
+    this.resetAddPrescription();
+    this.editMedicineModal = true;
+  }
+
+  closeEditMedicine() {
+    this.resetEditMedicine();
+    this.editMedicineModal = false;
+  }
+
+  private resetAddPrescription() {
+    this.medicine_name = '';
+    this.net_content = 0;
+    this.expiration_date = '';
+    this.medicine_form = 0;
+    this.compartment = 0;
+    this.start_datetime = '';
+    this.end_date = '';
+    this.hour_interval = 0;
+    this.dose = 0;
+    this.dose_component = 0;
+    this.color = '#ff0000';
+  }
+
+  private resetEditMedicine() {
+    this.medicine_name = '';
+    this.net_content = 0;
+    this.expiration_date = '';
+  }
+
   async nextStep() {
     if (this.tracker_step === 1) {
       this.tracker_step = 2;
+      this.tracker_name = 'Show Schedules';
     } else {
       this.tracker_step = 1;
+      this.tracker_name = 'Show Medicines';
     }
   }
 
@@ -145,6 +181,23 @@ export class Tab1Page {
       return 'The duration between start and end is too long. Maximum schedule duration is 30 days.';
 
     return null;
+  }
+
+  validateEditMedicine() {
+    let now = new Date();
+
+    if (
+      !this.color &&
+      !this.medicine_name &&
+      !this.net_content &&
+      !this.expiration_date
+    )
+      return 'Please fill in any fields you wish to edit.';
+
+    if (new Date(this.expiration_date) <= now)
+      return 'Your medicine is already expired.';
+
+    return;
   }
 
   isDeleteSchedule(intake_id: number, schedule_id: number) {
@@ -191,43 +244,38 @@ export class Tab1Page {
       .then((alert) => alert.present());
   }
 
-  async getMedicineForms() {
+  async isEditMedicine(medicine_id: number) {
     try {
-      const response = await axios.get(`${environment.urls.api}/get/forms`);
-      if (response.status === 200) {
-        this.forms = response.data;
-        console.log(this.forms);
-      }
-    } catch (error) {
-      console.error('Error fetching medicine forms:', error);
-    }
-  }
+      const active = await this.authService.getActiveAccount();
 
-  async getDoseComponents() {
-    try {
-      const response = await axios.get(
-        `${environment.urls.api}/get/components`
-      );
-      if (response.status === 200) {
-        this.components = response.data;
-        console.log(this.components);
+      if (!active?.access_token && !active?.user) {
+        await this.alertService.presentError('No access token found.');
+        this.router.navigate(['/login']);
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching dose components:', error);
-    }
-  }
 
-  async getCompartments() {
-    try {
-      const response = await axios.get(
-        `${environment.urls.api}/get/compartments`
-      );
-      if (response.status === 200) {
-        this.compartments = response.data;
-        console.log(this.compartments);
+      const input_error = this.validateEditMedicine();
+      if (input_error) {
+        await this.alertService.presentError(input_error);
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching compartments:', error);
+
+      this.loadService.showLoading('Please wait...');
+
+      const response = await this.mainService.updateMedicine(
+        active.access_token,
+        medicine_id,
+        this.medicine_name,
+        this.net_content,
+        new Date(this.expiration_date),
+        this.color
+      );
+      await this.alertService.presentMessage(response);
+      this.closeEditMedicine();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -235,29 +283,17 @@ export class Tab1Page {
     try {
       const active = await this.authService.getActiveAccount();
 
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+      if (!active?.access_token && !active?.user) {
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      const response = await axios.get(
-        `${environment.urls.api}/read/schedules`,
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-        this.schedules = response.data;
-        console.log(this.schedules);
-      }
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
+      const response = await this.mainService.getSchedules(active.access_token);
+      this.schedules = response;
+      console.log(this.schedules);
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
     }
   }
 
@@ -265,29 +301,99 @@ export class Tab1Page {
     try {
       const active = await this.authService.getActiveAccount();
 
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+      if (!active?.access_token && !active?.user) {
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      const response = await axios.get(
-        `${environment.urls.api}/read/prescription`,
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
+      const response = await this.mainService.getPrescriptions(
+        active.access_token
       );
-      if (response.status === 200) {
-        this.prescriptions = response.data;
-        console.log(this.prescriptions);
+      this.prescriptions = response;
+      console.log(this.prescriptions);
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    }
+  }
+
+  async getMedicineForms() {
+    try {
+      const response = await this.mainService.getMedicineForms();
+      this.forms = response;
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    }
+  }
+
+  async getDoseComponents() {
+    try {
+      const response = await this.mainService.getDoseComponents();
+      this.components = response;
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    }
+  }
+
+  async getCompartments() {
+    try {
+      const response = await this.mainService.getCompartments();
+      this.compartments = response;
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    }
+  }
+
+  async deleteSchedule(intake_id: number, schedule_id: number) {
+    try {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token && !active?.user) {
+        await this.alertService.presentError('No access token found.');
+        this.router.navigate(['/login']);
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
+
+      this.loadService.showLoading('Deleting schedule...');
+
+      const response = await this.mainService.deleteSchedule(
+        active.access_token,
+        intake_id,
+        schedule_id
+      );
+      await this.alertService.presentMessage(response);
+      this.getSchedules();
+      this.getPrescriptions();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    } finally {
+      this.loadService.hideLoading();
+    }
+  }
+
+  async deletePrescription(medicine_id: number) {
+    try {
+      const active = await this.authService.getActiveAccount();
+
+      if (!active?.access_token && !active?.user) {
+        await this.alertService.presentError('No access token found.');
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      this.loadService.showLoading('Deleting prescription...');
+
+      const response = await this.mainService.deletePrescription(
+        active.access_token,
+        medicine_id
+      );
+      await this.alertService.presentMessage(response);
+      this.getPrescriptions();
+      this.getSchedules();
+    } catch (error: any) {
+      await this.alertService.presentError(error.message);
+    } finally {
+      this.loadService.hideLoading();
     }
   }
 
@@ -296,10 +402,7 @@ export class Tab1Page {
       const active = await this.authService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
+        await this.alertService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
@@ -310,13 +413,13 @@ export class Tab1Page {
 
       const input_error = this.validatePrescriptionInputs();
       if (input_error) {
-        await this.alertService.presentMessage('Error!', input_error);
+        await this.alertService.presentError(input_error);
         return;
       }
 
       const date_error = this.validateDateInputs(start, end, now);
       if (date_error) {
-        await this.alertService.presentMessage('Error!', date_error);
+        await this.alertService.presentError(date_error);
         return;
       }
 
@@ -358,131 +461,21 @@ export class Tab1Page {
       );
 
       if (response.status === 200 || response.status === 201) {
-        this.alertService.presentMessage('Success!', response.data.message);
+        await this.alertService.presentMessage(response.data.message);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
-          const detail = error.response.data?.detail || 'An error occurred.';
-          this.alertService.presentError(detail);
+          await this.alertService.presentError(error.response.data?.detail);
         } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
+          await this.alertService.presentError(
+            'Unable to reach the server. Please try again later.'
           );
         } else {
-          this.alertService.presentError(error.message);
+          await this.alertService.presentError(error.message);
         }
       } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occurred. Please try again later.'
-        );
-      }
-    } finally {
-      this.loadService.hideLoading();
-    }
-  }
-
-  async deleteSchedule(intake_id: number, schedule_id: number) {
-    try {
-      const active = await this.authService.getActiveAccount();
-
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      this.loadService.showLoading('Deleting schedule...');
-
-      const response = await axios.post(
-        `${environment.urls.api}/delete/schedule`,
-        {
-          intake_id: intake_id,
-          schedule_id: schedule_id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-        this.alertService.presentMessage('Success!', response.data.message);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const detail = error.response.data?.detail || 'An error occurred.';
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
-          'An unexpected error occurred. Please try again later.'
-        );
-      }
-    } finally {
-      this.loadService.hideLoading();
-    }
-  }
-
-  async deletePrescription(medicine_id: number) {
-    try {
-      const active = await this.authService.getActiveAccount();
-
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentMessage(
-          'Error!',
-          'No access token found.'
-        );
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      this.loadService.showLoading('Deleting medication...');
-
-      const response = await axios.post(
-        `${environment.urls.api}/delete/prescription`,
-        {
-          medicine_id: medicine_id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${active.access_token}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-        this.alertService.presentMessage('Success!', response.data.message);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const detail = error.response.data?.detail || 'An error occurred.';
-          this.alertService.presentError(detail);
-        } else if (error.request) {
-          this.alertService.presentMessage(
-            'Network Error!',
-            'Could not reach the server. Check your internet connection or try again later.'
-          );
-        } else {
-          this.alertService.presentError(error.message);
-        }
-      } else {
-        this.alertService.presentMessage(
-          'Error!',
+        await this.alertService.presentError(
           'An unexpected error occurred. Please try again later.'
         );
       }
@@ -492,10 +485,10 @@ export class Tab1Page {
   }
 
   ngOnInit() {
+    this.getSchedules();
+    this.getPrescriptions();
     this.getMedicineForms();
     this.getDoseComponents();
     this.getCompartments();
-    this.getSchedules();
-    this.getPrescriptions();
   }
 }

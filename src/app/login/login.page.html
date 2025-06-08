@@ -11,14 +11,25 @@
         <div class="form-group">
           <label for="username">Username</label>
           <ion-item lines="none">
-            <ion-input type="text" [(ngModel)]="username" name="username" required> </ion-input>
+            <ion-input
+              type="text"
+              [(ngModel)]="username"
+              name="username"
+              required
+            >
+            </ion-input>
           </ion-item>
         </div>
 
         <div class="form-group">
           <label for="password">Password</label>
           <ion-item lines="none">
-            <ion-input type="password" [(ngModel)]="password" name="password" required>
+            <ion-input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              required
+            >
               <ion-input-password-toggle slot="end"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
@@ -28,6 +39,22 @@
           >LOGIN</ion-button
         >
       </form>
+
+      <div *ngIf="accounts.length > 0; else noAccounts">
+        <ion-list>
+          <ion-item
+            *ngFor="let account of accounts"
+            button
+            (click)="switchToUser(account.user_id)"
+          >
+            <ion-icon name="person-circle-outline" class="user-icon"></ion-icon>
+            <ion-label>{{ account.username }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+      <ng-template #noAccounts>
+        <p>No other accounts.</p>
+      </ng-template>
 
       <div class="bottom-text">
         Don’t have an account?

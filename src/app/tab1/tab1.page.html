@@ -35,7 +35,7 @@
         <div class="timeline-header">
           <h2>Medication Timeline</h2>
           <ion-button fill="clear" (click)="nextStep()"
-            >Show Prescriptions</ion-button
+            >{{ tracker_name }}</ion-button
           >
         </div>
 
@@ -83,13 +83,22 @@
                 <h2>{{ prescription.medicine_name | uppercase }}</h2>
               </div>
               <div class="medication-details">
-                <span>
-                  {{ prescription.start_datetime | date:'longDate' }} - {{
-                  prescription.end_datetime | date:'longDate' }}
-                </span>
+                <div>
+                  Duration: {{ prescription.start_datetime | date:'longDate' }}
+                  - {{ prescription.end_datetime | date:'longDate' }}
+                </div>
+                <div>
+                  Net Content: {{ prescription.net_content || 'No net content
+                  set'}}
+                </div>
+                <div>
+                  Expiration: {{ prescription.expiration_date ?
+                  (prescription.expiration_date | date:'longDate') : 'No
+                  expiration set' }}
+                </div>
               </div>
               <div class="medication-actions">
-                <ion-button class="edit-button">
+                <ion-button class="edit-button" (click)="openEditMedicine()">
                   <ion-icon name="create-outline"></ion-icon>
                   EDIT
                 </ion-button>
@@ -101,6 +110,78 @@
                   DELETE
                 </ion-button>
               </div>
+
+              <!-- Edit Medicine Details -->
+              <ion-modal
+                [isOpen]="editMedicineModal"
+                (didDismiss)="closeEditMedicine()"
+              >
+                <ng-template>
+                  <ion-header>
+                    <ion-toolbar>
+                      <ion-title
+                        >Edit {{ prescription.medicine_name }}</ion-title
+                      >
+                      <ion-buttons slot="end">
+                        <ion-button (click)="closeEditMedicine()">
+                          <ion-icon name="close"></ion-icon>
+                        </ion-button>
+                      </ion-buttons>
+                    </ion-toolbar>
+                  </ion-header>
+
+                  <ion-content class="ion-padding">
+                    <div class="color-selection">
+                      <div class="color-icons">
+                        <span>Choose Color</span>
+                      </div>
+                      <ion-item lines="none">
+                        <ion-input type="color" [(ngModel)]="color"></ion-input>
+                      </ion-item>
+                    </div>
+
+                    <div class="form-section">
+                      <ion-item>
+                        <ion-label position="stacked">Medicine Name</ion-label>
+                        <ion-input
+                          [(ngModel)]="medicine_name"
+                          type="text"
+                          required
+                        ></ion-input>
+                      </ion-item>
+
+                      <ion-item>
+                        <ion-label>Net Content</ion-label>
+                        <ion-input
+                          [(ngModel)]="net_content"
+                          type="number"
+                          min="0"
+                          required
+                        ></ion-input>
+                      </ion-item>
+
+                      <ion-item>
+                        <ion-label position="stacked"
+                          >Expiration Date</ion-label
+                        >
+                        <ion-input
+                          [(ngModel)]="expiration_date"
+                          type="date"
+                          required
+                        ></ion-input>
+                      </ion-item>
+                    </div>
+
+                    <ion-item>
+                      <ion-button
+                        expand="block"
+                        (click)="isEditMedicine(prescription.medicine_id)"
+                        >Submit</ion-button
+                      >
+                    </ion-item>
+                  </ion-content>
+                </ng-template>
+              </ion-modal>
             </div>
           </div>
         </div>
@@ -108,13 +189,14 @@
         <ng-template #noPrescriptions>
           <div class="no-medications">
             <ion-icon name="calendar-clear-outline"></ion-icon>
-            <p>No prescriptions yet.</p>
+            <p>No medicines yet.</p>
           </div>
         </ng-template>
       </div>
     </ion-col>
   </ion-row>
 
+  <!-- Add Reminders -->
   <ion-modal [isOpen]="prescriptionModal" (didDismiss)="closeAddPrescription()">
     <ng-template>
       <ion-header>
@@ -250,7 +332,6 @@
           <span class="dispenser-title"
             >Choose MediQnect Dispenser Compartment</span
           >
-          <span class="dispenser-id">Dispenser ID: 3238913</span>
           <ion-item>
             <ion-label position="stacked">Compartments</ion-label>
             <ion-radio-group
