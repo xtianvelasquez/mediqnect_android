@@ -36,6 +36,7 @@
     margin-bottom: 10px;
   }
 
+  // Reusable popup overlay (not specific to add-user-popup)
   .popup-overlay {
     position: fixed;
     top: 0;
@@ -51,6 +52,12 @@
     touch-action: none;
   }
 
+  .add-user-modal {
+    --height: 30px;
+    --max-height: 10%;
+    --border-radius: 1px;
+  }
+
   .popup-box {
     background: #fff;
     width: 90%;
@@ -59,16 +66,19 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
     padding: 16px;
     z-index: 1001;
-    overflow-y: auto;
     max-height: 90vh;
-    overflow: hidden;
-    touch-action: none;
+    overflow-y: auto;
+
+    /* NEW: flex layout para controlled height */
+    display: flex;
+    flex-direction: column;
 
     ion-toolbar {
       --background: #f8f8f8;
       --color: #000;
       border-radius: 12px 12px 0 0;
       margin-bottom: 16px;
+      flex-shrink: 0;
     }
 
     .input-label {
@@ -76,10 +86,25 @@
       font-size: 14px;
       display: block;
       margin: 10px 0 4px;
+      flex-shrink: 0;
     }
 
     .input-box {
       margin-bottom: 8px;
+      flex-shrink: 0;
+
+      ion-input {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background-color: #fff;
+        height: 40px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        --padding-start: 12px;
+        --padding-end: 12px;
+      }
     }
 
     .error-message {
@@ -87,12 +112,14 @@
       font-size: 12px;
       margin-top: 4px;
       padding-left: 10px;
+      flex-shrink: 0;
     }
 
     .button-row {
       display: flex;
       justify-content: space-between;
       margin-top: 20px;
+      flex-shrink: 0;
 
       ion-button {
         width: 48%;
@@ -100,8 +127,131 @@
       }
     }
   }
+
+  // Add User Popup Specific Styling (overrides)
+  .popup-overlay.add-user-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2147483647 !important;
+    will-change: transform;
+  }
+
+  .add-user-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2147483647 !important;
+    pointer-events: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    will-change: transform;
+
+    .popup-box {
+      background: #fff;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      padding: 16px;
+      z-index: 2147483648 !important;
+      max-height: 90vh;
+      overflow-y: auto;
+
+      display: flex;
+      flex-direction: column;
+
+      ion-toolbar {
+        --background: #f8f8f8;
+        --color: #000;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: 16px;
+        flex-shrink: 0;
+      }
+
+      .input-label {
+        font-weight: normal;
+        font-size: 14px;
+        display: block;
+        margin: 10px 0 4px;
+        flex-shrink: 0;
+      }
+
+      .input-box {
+        margin-bottom: 8px;
+        flex-shrink: 0;
+
+        ion-input {
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          background-color: #fff;
+          height: 40px;
+          padding: 0 12px;
+          display: flex;
+          align-items: center;
+          text-align: left;
+          --padding-start: 12px;
+          --padding-end: 12px;
+        }
+      }
+
+      .error-message {
+        color: #f44336;
+        font-size: 12px;
+        margin-top: 4px;
+        padding-left: 10px;
+        flex-shrink: 0;
+      }
+
+      .button-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        flex-shrink: 0;
+
+        ion-button {
+          width: 48%;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  /* NEW: Switch User Modal styles */
+  .switch-user-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Lower than add-user-popup */
+  }
+
+  .toggle-password {
+    font-size: 22px;
+    color: #666;
+    cursor: pointer;
+    margin-left: 8px;
+  }
 }
 
+// Ionic Modal Adjustments
 ::ng-deep ion-modal.half-modal::part(content) {
   height: 50%;
   align-self: flex-end;
@@ -110,4 +260,119 @@
 
 .half-modal ion-content {
   --background: #fff;
+}
+
+.input-box ion-input {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+.logo-title-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.logo-title {
+  display: flex;
+  align-items: center;
+  /* gap removed for zero spacing */
+}
+
+.logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1px; /* tiny spacing only if needed */
+}
+
+.logo-img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
+
+.add-user-modal {
+  position: absolute !important;
+  bottom: 20px !important; /* distance from bottom */
+  left: 10px !important; /* margin from left */
+  right: 10px !important; /* margin from right */
+  max-width: 500px !important; /* max width for bigger screens */
+  height: auto !important;
+  border-radius: 16px 16px 0 0 !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  background-color: var(--ion-background-color, #fff) !important;
+}
+
+/* Make sure modal wrapper inherits the rounded corners */
+.add-user-modal .modal-wrapper {
+  border-radius: inherit !important;
+  overflow: hidden !important;
+}
+
+/* Content padding and layout */
+.add-user-modal ion-content {
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Toolbar style */
+.add-user-modal ion-toolbar {
+  --background: transparent;
+  border-bottom: 1px solid var(--ion-color-light);
+  margin-bottom: 12px;
+}
+
+/* Input labels and inputs */
+.input-label {
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-box {
+  margin-bottom: 12px;
+}
+
+/* Button row styling */
+.button-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-user-modal ion-button[type="submit"] {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.compartment-button-group {
+  margin: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }

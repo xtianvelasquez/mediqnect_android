@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tab2',
@@ -7,7 +8,9 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class Tab2Page {
+  constructor(private router: Router) {}
 
-  constructor() {}
-
+  profile() {
+    this.router.navigate(['/profile']);
+  }
 }

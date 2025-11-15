@@ -1,53 +1,58 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { TokenService } from '../services/token.service';
 import { environment } from 'src/environments/environment';
-import axios from 'axios';
+import { Http } from '@capacitor-community/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProtectedGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private tokenService: TokenService) { }
 
   async canActivate(): Promise<boolean> {
-    const active = await this.authService.getActiveAccount();
+    const active = this.tokenService.getActiveAccount();
 
     if (!active?.access_token || !active?.user) {
       this.router.navigate(['/login']);
       return false;
     }
 
+    console.log('Active Account:', active);
+    console.log('Access Token:', active?.access_token);
+    console.log('User:', active?.user);
+
     try {
-      const response = await axios.get(`${environment.urls.api}/protected`, {
-        headers: { Authorization: `Bearer ${active.access_token}` },
-      });
+      const options = {
+        url: `${environment.urls.api}/protected`,
+        headers: {
+          Authorization: `Bearer ${active.access_token}`,
+        },
+        params: {},
+      };
+
+      const response = await Http.get(options);
 
       if (response.status === 200) {
         return true; // Allowed access
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Authentication failed:', error);
+    } catch (error: any) {
+      const detail =
+        error?.response?.data?.detail ||
+        error?.error?.detail ||
+        error?.message ||
+        'An unknown error occurred. Please try again later.';
 
-        if (
-          error.response?.status === 401 ||
-          error.response?.status === 404 ||
-          error.response?.status === 500
-        ) {
-          this.authService.removeAccount(active.user);
-          this.router.navigate(['/login']);
-        }
-      } else {
-        console.error('Unexpected error in authentication:', error);
-      }
+      console.warn('Authentication failed:', detail);
 
+      // Cleanup in case response wasn't 200
+      this.tokenService.removeAccount(active.user);
       this.router.navigate(['/login']);
       return false;
     }
 
-    // Ensure cleanup for any failed authentication cases
-    this.authService.removeAccount(active.user);
+    // Cleanup in case response wasn't 200
+    this.tokenService.removeAccount(active.user);
     this.router.navigate(['/login']);
     return false;
   }

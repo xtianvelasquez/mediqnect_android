@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { AlertService } from '../services/alert.service';
-import { AuthService } from '../services/auth.service';
-import { LoadService } from '../services/load.service';
-import { EntryService } from '../api/entry.service';
-import { environment } from 'src/environments/environment';
-import axios from 'axios';
+import { AlertController } from '@ionic/angular';
+import { NotifService } from '../services/notif.service';
+import { TokenService } from '../services/token.service';
+import { MainService } from '../api/main.service';
+import { AuthService } from '../api/auth.service';
+import { environment } from 'src/environments/environment.prod';
+import { Http } from '@capacitor-community/http';
 
 @Component({
   selector: 'app-profile',
@@ -17,7 +18,7 @@ import axios from 'axios';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule],
 })
-export class ProfilePage {
+export class ProfilePage implements OnInit {
   user_data: any = {};
   accounts: any = {};
 
@@ -31,23 +32,16 @@ export class ProfilePage {
   showChangePasswordPopup = false;
   isSwitchUserModalOpen = false;
   showAddUserPopup = false;
+  showCleanCompartment = false;
 
   constructor(
     private router: Router,
-    private alertService: AlertService,
+    private alertController: AlertController,
+    private notifService: NotifService,
     private authService: AuthService,
-    private loadService: LoadService,
-    private entryService: EntryService
-  ) {}
-
-  openChangeUsernamePopup() {
-    this.resetUsernamePopup();
-    this.showChangeUsernamePopup = true;
-  }
-
-  closeChangeUsernamePopup() {
-    this.showChangeUsernamePopup = false;
-  }
+    private tokenService: TokenService,
+    private mainService: MainService
+  ) { }
 
   openChangePasswordPopup() {
     this.resetPasswordPopup();
@@ -75,9 +69,12 @@ export class ProfilePage {
     this.showAddUserPopup = false;
   }
 
-  private resetUsernamePopup() {
-    this.new_username = '';
-    this.password = '';
+  openCleanCompartment() {
+    this.showCleanCompartment = true;
+  }
+
+  closeCleanCompartment() {
+    this.showCleanCompartment = false;
   }
 
   private resetPasswordPopup() {
@@ -89,16 +86,6 @@ export class ProfilePage {
   private resetAddUserPopup() {
     this.username = '';
     this.password = '';
-  }
-
-  validateUsernameChangeInput() {
-    if (!this.new_username || !this.password)
-      return 'Please fill the necessary field.';
-
-    if (this.new_username.length < 6 || this.new_username.length > 50)
-      return 'Username must be at least 6 and at most 50 characters long.';
-
-    return null;
   }
 
   validatePasswordChangeInput() {
@@ -114,189 +101,258 @@ export class ProfilePage {
     return null;
   }
 
-  async switchToUser(user_id: string) {
-    this.loadService.showLoading('Loading profile...');
+  async cleanCompartment(compartmentId: number) {
+    this.notifService.showLoading('Please wait...');
     try {
-      const active = await this.authService.getActiveAccount();
+      const active = this.tokenService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
+        await this.notifService.presentError('No access token found.');
+        await this.router.navigate(['/login']);
+        return;
+      }
+
+      const response = await this.mainService.cleanCompartment(
+        active.access_token,
+        compartmentId
+      );
+      await this.notifService.presentMessage(response);
+      this.closeCleanCompartment();
+
+      // Notify after 5 minutes, but without freezing the UI
+      setTimeout(() => {
+        this.notifService.presentMessage('Your compartment is now fully cleaned.');
+      }, 300000);
+    } catch (error: any) {
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
+    } finally {
+      this.notifService.hideLoading();
+    }
+  }
+
+  async switchToUser(user_id: string) {
+    this.notifService.showLoading('Loading profile...');
+    try {
+      const active = this.tokenService.getActiveAccount();
 
       if (user_id === active?.user) {
-        await this.alertService.presentError(
+        await this.notifService.presentError(
           "You're already using this account."
         );
         return;
       }
 
-      this.authService.switchAccount(user_id);
+      this.tokenService.switchAccount(user_id);
       window.location.reload();
     } catch (error) {
-      console.error('Account switch failed:', error);
-      await this.alertService.presentError(
+      console.warn('Account switch failed:', error);
+      await this.notifService.presentError(
         'Failed to switch account. Please try again later.'
       );
     } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
+    }
+  }
+
+  isDeleteAccount() {
+    this.alertController
+      .create({
+        header: 'Confirm Deletion',
+        message: 'This account will be deleted permanently.',
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel',
+          },
+          {
+            text: 'Yes',
+            handler: () => {
+              this.deleteAccount();
+            },
+          },
+        ],
+        mode: 'md',
+      })
+      .then((alert) => alert.present());
+  }
+
+  async getAccounts() {
+    try {
+      const saved_account = this.tokenService.getAccounts().map((account) => account.user);
+
+      if (!saved_account) {
+        console.log('No saved account yet.');
+        return;
+      }
+
+      const options = {
+        url: `${environment.urls.api}/get/accounts`,
+        headers: { 'Content-Type': 'application/json' },
+        params: {},
+        data: { ids: saved_account },
+      };
+
+      const response = await Http.post(options);
+
+      if (response.status === 200 || response.status === 201) {
+        this.accounts = response.data;
+      } else {
+        this.notifService.presentError(
+          response.data?.detail ||
+          'Something went wrong. Please try again later.'
+        );
+      }
+    } catch (error: any) {
+      const detail =
+        error?.response?.data?.detail ||
+        error?.error?.detail ||
+        error?.message ||
+        'An unknown error occurred. Please try again later.';
+
+      console.warn(detail);
+    }
+  }
+
+  async getUserData() {
+    try {
+      const active = this.tokenService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
+        await this.notifService.presentError('No access token found.');
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      const response = await this.authService.getUserData(active.access_token);
+      this.user_data = response;
+    } catch (error: any) {
+      const message = error?.message || 'An unexpected error occurred.';
+      console.warn(message);
     }
   }
 
   async addNewAccount() {
-    this.loadService.showLoading('Adding profile...');
+    this.notifService.showLoading('Adding profile...');
     try {
-      const saved_account = await this.authService.getAccounts();
+      const saved_account = this.tokenService.getAccounts();
 
       if (saved_account.length > 6) {
-        await this.alertService.presentError(
+        await this.notifService.presentError(
           'Maximum account limit reached. You can only save 6 accounts for quick switching.'
         );
         return;
       }
 
       if (!this.username || !this.password) {
-        await this.alertService.presentError(
+        await this.notifService.presentError(
           'Please fill in the necessary field.'
         );
         return;
       }
 
-      const response = await this.entryService.login(
+      const response = await this.authService.login(
         this.username,
         this.password
       );
 
       // Process login success
-      this.authService.addAccount(response.user, response.access_token);
-      this.authService.switchAccount(response.user);
+      await this.tokenService.addAccount(response.user, response.access_token);
+      this.tokenService.switchAccount(response.user);
       window.location.reload();
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     } finally {
-      this.loadService.hideLoading();
-    }
-  }
-
-  async getAccounts() {
-    try {
-      const saved_account = await this.authService.getAccounts();
-
-      if (!saved_account) {
-        return;
-      }
-
-      const response = await axios.post(
-        `${environment.urls.api}/get/accounts`,
-        {
-          ids: saved_account,
-        }
-      );
-
-      if (response.status === 200 || response.status === 201) {
-        this.accounts = response.data;
-      }
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-    }
-  }
-
-  async getUserData() {
-    try {
-      const active = await this.authService.getActiveAccount();
-
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      const response = await this.entryService.getUserData(active.access_token);
-      this.user_data = response;
-    } catch (error: any) {
-      await this.alertService.presentError(error.message);
-    }
-  }
-
-  async saveUsernameChange() {
-    try {
-      const active = await this.authService.getActiveAccount();
-
-      if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      const input_error = this.validateUsernameChangeInput();
-      if (input_error) {
-        await this.alertService.presentError(input_error);
-        return;
-      }
-
-      this.loadService.showLoading('Please wait...');
-
-      const response = await this.entryService.saveUsernameChange(
-        active.access_token,
-        this.new_username,
-        this.password
-      );
-
-      await this.alertService.presentMessage(response);
-      this.getUserData();
-    } catch (error: any) {
-      await this.alertService.presentError(error.message);
-    } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
     }
   }
 
   async savePasswordChange() {
     try {
-      const active = await this.authService.getActiveAccount();
+      const active = this.tokenService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
+        await this.notifService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
       const input_error = this.validatePasswordChangeInput();
       if (input_error) {
-        await this.alertService.presentError(input_error);
+        await this.notifService.presentError(input_error);
         return;
       }
 
-      this.loadService.showLoading('Please wait...');
+      this.notifService.showLoading('Please wait...');
 
-      const response = await this.entryService.savePasswordChange(
+      const response = await this.authService.savePasswordChange(
         active.access_token,
         this.new_password,
         this.password
       );
-      await this.alertService.presentMessage(response);
+      await this.notifService.presentMessage(response);
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
     }
   }
 
   async logout() {
+    this.notifService.showLoading('Logging out...');
     try {
-      const active = await this.authService.getActiveAccount();
+      const active = this.tokenService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
+        await this.notifService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      this.loadService.showLoading('Logging out...');
-
-      const response = await this.entryService.logout(active.access_token);
-      this.authService.removeAccount(active.user);
+      const response = await this.authService.logout(active.access_token);
+      this.tokenService.removeAccount(active.user);
       console.log(response);
       window.location.reload();
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
+    }
+  }
+
+  async deleteAccount() {
+    this.notifService.showLoading('Deleting account...');
+    try {
+      const active = this.tokenService.getActiveAccount();
+
+      if (!active?.access_token || !active?.user) {
+        await this.notifService.presentError('No access token found.');
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      const response = await this.authService.deleteAccount(active.access_token);
+      this.tokenService.removeAccount(active.user);
+      console.log(response);
+      window.location.reload();
+    } catch (error: any) {
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
+    } finally {
+      this.notifService.hideLoading();
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    try {
+      await Promise.all([this.getAccounts(), this.getUserData()]);
+    } catch (error) {
+      console.warn('Error refreshing data:', error);
+    } finally {
+      (event.target as HTMLIonRefresherElement).complete();
     }
   }
 

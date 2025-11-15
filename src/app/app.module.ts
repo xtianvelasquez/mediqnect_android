@@ -12,4 +12,4 @@ import { LocalNotifications } from '@awesome-cordova-plugins/local-notifications
   providers: [LocalNotifications, { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

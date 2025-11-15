@@ -1,31 +1,30 @@
 import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import { AuthService } from '../services/auth.service';
-
+import { TokenService } from './token.service';
+import { environment } from 'src/environments/environment.prod';
 import { LocalNotifications } from '@awesome-cordova-plugins/local-notifications/ngx';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class WebsocketService {
+export class AlarmService {
   ws!: WebSocket;
   max_retries = 10;
   retry_count = 0;
 
   constructor(
-    private authService: AuthService,
+    private tokenService: TokenService,
     private localNotifications: LocalNotifications
   ) {
     this.connectWebSocket();
   }
 
   async connectWebSocket() {
-    if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-      console.log('WebSocket is already running. Skipping new connection.');
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      console.log('WebSocket is already open. Skipping new connection.');
       return;
     }
 
-    const active = await this.authService.getActiveAccount();
+    const active = this.tokenService.getActiveAccount();
 
     if (!active?.access_token || !active?.user) {
       console.log('No active session, WebSocket will not start.');
@@ -44,33 +43,27 @@ export class WebsocketService {
       console.log('Message received:', event.data);
       const data = JSON.parse(event.data);
 
-      if (
-        data.alarms &&
-        typeof data.alarms === 'object' &&
-        Object.keys(data.alarms).length > 0
-      ) {
-        console.log(data.alarms);
+      if (Array.isArray(data.alarms) && data.alarms.length > 0) {
+        data.alarms.forEach((alarm: any) => {
+          console.log('Scheduling notification for:', alarm);
 
-        this.localNotifications.schedule({
-          id: data.alarms.schedule_id,
-          title: data.alarms.medicine_name,
-          text: data.alarms.medicine_name,
-          trigger: { at: new Date() },
-          sound: 'file://alarm',
-          led: 'FF0000',
-          vibrate: true,
-          foreground: true,
+          this.localNotifications.schedule({
+            id: alarm.schedule_id,
+            title: alarm.medicine_name || 'Medication Reminder',
+            text: `Time to take your ${alarm.medicine_name}` || 'Time to take your medicine',
+            trigger: { at: new Date() },
+            foreground: true
+          });
         });
+      } else {
+        console.warn('No alarm data received:', data.alarms);
       }
     };
     this.ws.onclose = (event) => {
       console.log(
         `WebSocket disconnected. Code: ${event.code}, Reason: ${event.reason}`
       );
-      if (
-        [1006, 1011].includes(event.code) &&
-        this.retry_count < this.max_retries
-      ) {
+      if (this.retry_count < this.max_retries) {
         this.retry_count++;
         console.log(
           `Temporary issue, reconnecting in 5s... (Attempt ${this.retry_count})`
@@ -85,6 +78,13 @@ export class WebsocketService {
   sendMessage(message: string) {
     if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(message);
+    }
+  }
+
+  closeWebSocket() {
+    if (this.ws) {
+      console.log('Closing WebSocket connection...');
+      this.ws.close();
     }
   }
 }

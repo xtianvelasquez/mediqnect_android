@@ -1,74 +1,87 @@
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="centered-content">
   <div class="container">
     <div class="logo-wrapper">
       <img src="assets/mediqnect.png" alt="MediQnect Logo" />
-      <h1 class="brand-name">MEDIQNECT</h1>
     </div>
 
-    <h2 class="form-title">SIGN UP</h2>
+    <div class="form-card">
+      <h1 class="brand-name">MEDIQNECT</h1>
+      <h2 class="form-title">SIGN UP</h2>
 
-    <form (submit)="signup(); $event.preventDefault();">
-      <div *ngIf="signupStep === 1">
-        <ion-item lines="none">
-          <ion-input
-            placeholder="USERNAME"
-            [(ngModel)]="username"
-            name="username"
-            required
-          ></ion-input>
-        </ion-item>
+      <form (submit)="signup(); $event.preventDefault();">
+        <!-- STEP 1: Username, Password, Confirm Password -->
+        <div *ngIf="signupStep === 1">
+          <ion-item lines="none">
+            <ion-input
+              placeholder="USERNAME"
+              [(ngModel)]="username"
+              name="username"
+              required
+            ></ion-input>
+          </ion-item>
 
-        <ion-item lines="none">
-          <ion-input
-            placeholder="PASSWORD"
-            type="password"
-            [(ngModel)]="password"
-            name="password"
-            required
+          <ion-item lines="none">
+            <ion-input
+              placeholder="PASSWORD"
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              required
+            >
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-input
+              placeholder="CONFIRM PASSWORD"
+              type="password"
+              [(ngModel)]="confirm_password"
+              name="confirm_password"
+              required
+            >
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            type="button"
+            class="action-btn"
+            (click)="nextStep()"
           >
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
+            NEXT
+          </ion-button>
+        </div>
 
-        <ion-item lines="none">
-          <ion-input
-            placeholder="CONFIRM PASSWORD"
-            type="password"
-            [(ngModel)]="confirm_password"
-            name="confirm_password"
-            required
+        <!-- STEP 2: Dispenser Code -->
+        <div *ngIf="signupStep === 2">
+          <ion-item lines="none">
+            <ion-input
+              placeholder="DISPENSER CODE"
+              [(ngModel)]="dispenser_code"
+              name="dispenser_code"
+              required
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            class="action-btn"
+            (click)="signupStep = 1"
           >
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
+            CANCEL
+          </ion-button>
 
-        <ion-button
-          expand="block"
-          type="button"
-          class="action-btn"
-          (click)="nextStep()"
-          >NEXT</ion-button
-        >
+          <ion-button expand="block" type="submit" class="action-btn">
+            SIGN UP
+          </ion-button>
+        </div>
+      </form>
+
+      <div class="bottom-text">
+        Already have an account? <a (click)="login()">Login</a>
       </div>
-
-      <div *ngIf="signupStep === 2">
-        <ion-item lines="none">
-          <ion-input
-            placeholder="DISPENSER CODE"
-            [(ngModel)]="dispenser_code"
-            name="dispenser_code"
-            required
-          ></ion-input>
-        </ion-item>
-
-        <ion-button expand="block" type="submit" class="action-btn"
-          >SIGN UP</ion-button
-        >
-      </div>
-    </form>
-
-    <div class="bottom-text">
-      Already have an account? <a (click)="login()">Login</a>
     </div>
   </div>
 </ion-content>

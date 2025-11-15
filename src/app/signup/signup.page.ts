@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertService } from '../services/alert.service';
-import { LoadService } from '../services/load.service';
-import { EntryService } from '../api/entry.service';
+import { NotifService } from '../services/notif.service';
+import { AuthService } from '../api/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -20,10 +19,9 @@ export class SignupPage {
 
   constructor(
     private router: Router,
-    private alertService: AlertService,
-    private loadService: LoadService,
-    private entryService: EntryService
-  ) {}
+    private notifService: NotifService,
+    private authService: AuthService
+  ) { }
 
   login() {
     this.router.navigate(['/login']);
@@ -52,7 +50,7 @@ export class SignupPage {
   async nextStep() {
     const input_error = this.validateSignupInput();
     if (input_error) {
-      await this.alertService.presentError(input_error);
+      await this.notifService.presentError(input_error);
       return;
     }
 
@@ -60,20 +58,28 @@ export class SignupPage {
   }
 
   async signup() {
-    this.loadService.showLoading('Signing up...');
+    this.notifService.showLoading('Signing up...');
     try {
-      const response = await this.entryService.signup(
+      if (!this.dispenser_code) {
+        await this.notifService.presentError(
+          'Please fill in the necessary field.'
+        );
+        return;
+      }
+
+      const response = await this.authService.signup(
         this.username,
         this.password,
         this.dispenser_code
       );
 
-      await this.alertService.presentMessage(response);
+      await this.notifService.presentMessage(response);
       this.router.navigate(['/login']);
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
     }
   }
 }

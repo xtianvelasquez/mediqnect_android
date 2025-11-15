@@ -5,9 +5,8 @@ import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { AlertController } from '@ionic/angular/standalone';
-import { AlertService } from '../services/alert.service';
-import { AuthService } from '../services/auth.service';
-import { LoadService } from '../services/load.service';
+import { NotifService } from '../services/notif.service';
+import { TokenService } from '../services/token.service';
 import { MainService } from '../api/main.service';
 
 interface History {
@@ -37,11 +36,10 @@ export class Tab3Page {
     private router: Router,
     private datePipe: DatePipe,
     private alertController: AlertController,
-    private alertService: AlertService,
-    private authService: AuthService,
-    private loadService: LoadService,
+    private notifService: NotifService,
+    private tokenService: TokenService,
     private mainService: MainService
-  ) {}
+  ) { }
 
   profile() {
     this.router.navigate(['/profile']);
@@ -169,6 +167,9 @@ export class Tab3Page {
   }
 
   promptUserForTime(schedule_id: number, history_id: number) {
+    const now = new Date();
+    const formattedNow = now.toISOString().slice(0, 16);
+
     this.alertController
       .create({
         header: 'Enter intake datetime:',
@@ -176,6 +177,7 @@ export class Tab3Page {
           {
             name: 'history_datetime',
             type: 'datetime-local',
+            max: formattedNow,
           },
         ],
         buttons: [
@@ -205,10 +207,10 @@ export class Tab3Page {
 
   async getHistories() {
     try {
-      const active = await this.authService.getActiveAccount();
+      const active = this.tokenService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
+        await this.notifService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
@@ -217,7 +219,8 @@ export class Tab3Page {
       this.histories = response;
       console.log(this.histories);
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     }
   }
 
@@ -227,15 +230,15 @@ export class Tab3Page {
     history_id: number
   ) {
     try {
-      const active = await this.authService.getActiveAccount();
+      const active = this.tokenService.getActiveAccount();
 
       if (!active?.access_token || !active?.user) {
-        await this.alertService.presentError('No access token found.');
+        await this.notifService.presentError('No access token found.');
         this.router.navigate(['/login']);
         return;
       }
 
-      this.loadService.showLoading('Please wait...');
+      this.notifService.showLoading('Please wait...');
 
       const response = await this.mainService.updateMissedMedication(
         active.access_token,
@@ -243,12 +246,23 @@ export class Tab3Page {
         data_datetime,
         history_id
       );
-      await this.alertService.presentMessage(response);
+      await this.notifService.presentMessage(response);
       this.getHistories();
     } catch (error: any) {
-      await this.alertService.presentError(error.message);
+      const message = error?.message || 'An unexpected error occurred.';
+      await this.notifService.presentError(message);
     } finally {
-      this.loadService.hideLoading();
+      this.notifService.hideLoading();
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    try {
+      await this.getHistories();
+    } catch (error) {
+      console.warn('Error refreshing data:', error);
+    } finally {
+      (event.target as HTMLIonRefresherElement).complete();
     }
   }
 

@@ -1,3 +1,4 @@
+<br />
 <ion-header>
   <ion-toolbar>
     <ion-title>Profile</ion-title>
@@ -7,23 +8,29 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content
-  class="ion-padding profile-page"
-  [class.blur]="showChangeUsernamePopup || showChangePasswordPopup"
->
-  <div class="logo-container">
-    <img src="assets/brand.png" alt="MediQnect Logo" class="logo" />
-  </div>
+<ion-content class="ion-padding profile-page">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="chevron-down-circle-outline"
+      pullingText="Pull to refresh"
+      refreshingSpinner="circular"
+      refreshingText="Refreshing..."
+    ></ion-refresher-content>
+  </ion-refresher>
+
+  <section class="logo-title-wrapper">
+    <div class="logo-title">
+      <div class="logo">
+        <img src="assets/mediqnect.png" alt="MediQnect Logo" class="logo-img" />
+      </div>
+    </div>
+  </section>
 
   <div class="user-section">
     <ion-icon name="person-circle-outline" class="user-icon"></ion-icon>
     <div class="username">{{ user_data.username || 'User Name' }}</div>
     <p>{{ user_data.dispenser_code || 'no dispenser' }}</p>
   </div>
-
-  <ion-item button (click)="openChangeUsernamePopup()">
-    <ion-label>Change Username</ion-label>
-  </ion-item>
 
   <ion-item button (click)="openChangePasswordPopup()">
     <ion-label>Change Password</ion-label>
@@ -33,6 +40,14 @@
     <ion-label>Switch User</ion-label>
   </ion-item>
 
+  <ion-item button (click)="isDeleteAccount()">
+    <ion-label>Delete Account</ion-label>
+  </ion-item>
+
+  <ion-item button (click)="openCleanCompartment()">
+    <ion-label>Clean Compartment</ion-label>
+  </ion-item>
+
   <div>
     <p class="account-info">
       Joined: {{ user_data.created_at | date:'longDate' }}
@@ -40,47 +55,6 @@
     <p class="account-info">
       Modified: {{ user_data.modified_at | date:'longDate' }}
     </p>
-  </div>
-
-  <!-- Change Username Popup -->
-  <div
-    *ngIf="showChangeUsernamePopup"
-    class="popup-overlay"
-    (click)="closeChangeUsernamePopup()"
-  >
-    <div class="popup-box" (click)="$event.stopPropagation()">
-      <ion-toolbar>
-        <ion-title>Change Username</ion-title>
-      </ion-toolbar>
-
-      <form (ngSubmit)="saveUsernameChange()" #usernameForm="ngForm" novalidate>
-        <label class="input-label">New Username</label>
-        <div class="input-box">
-          <ion-input
-            [(ngModel)]="new_username"
-            name="new_username"
-            minlength="6"
-            maxlength="50"
-            required
-          ></ion-input>
-        </div>
-        <label class="input-label">Current Password</label>
-        <div class="input-box">
-          <ion-input
-            [(ngModel)]="password"
-            name="password"
-            type="password"
-            required
-          ></ion-input>
-        </div>
-        <div class="button-row">
-          <ion-button color="danger" (click)="closeChangeUsernamePopup()"
-            >Cancel</ion-button
-          >
-          <ion-button expand="block" type="submit">Save</ion-button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <!-- Change Password Popup -->
@@ -221,6 +195,26 @@
             <ion-button type="submit">Add</ion-button>
           </div>
         </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Clean Compartment -->
+  <ion-modal
+    [isOpen]="showCleanCompartment"
+    (didDismiss)="closeCleanCompartment()"
+    cssClass="add-user-modal"
+  >
+    <ng-template>
+      <ion-content scroll="false" class="ion-padding">
+        <ion-toolbar>
+          <ion-title>Clean Compartment</ion-title>
+        </ion-toolbar>
+
+        <ion-button expand="block" (click)="cleanCompartment(4)">B1</ion-button>
+        <ion-button expand="block" (click)="cleanCompartment(5)">B2</ion-button>
+        <ion-button expand="block" (click)="cleanCompartment(6)">B3</ion-button>
+        <ion-button expand="block" color="danger" (click)="closeCleanCompartment()">Cancel</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>

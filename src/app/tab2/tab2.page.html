@@ -1,17 +1,442 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 2
-    </ion-title>
+    <br />
+    <div class="header-content">
+      <div class="logo-title">
+        <div class="logo">
+          <img
+            src="assets/mediqnect.png"
+            alt="MediQnect Logo"
+            class="logo-img"
+          />
+        </div>
+        <h1 class="title">USER MANUAL</h1>
+      </div>
+      <ion-button (click)="profile()">
+        <ion-icon name="person-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <h2 class="section-title">User Manual</h2>
+  <p>This guide helps you navigate the key features of the MediQnect.</p>
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  <ion-accordion-group expand="inset" value="add-reminder">
+    <!-- Add Reminder Accordion -->
+    <ion-accordion value="add-reminder">
+      <ion-item slot="header" color="light">
+        <ion-icon
+          name="add-circle-outline"
+          slot="start"
+          class="header-icon"
+        ></ion-icon>
+        <ion-label>Add Reminder Tab</ion-label>
+      </ion-item>
+      <div class="ion-padding" slot="content">
+        <ul>
+          <li>
+            Go to the <strong>"Reminders"</strong> tab to view your
+            reminders.<br />
+            <img
+              src="assets/images/reminders.png"
+              alt="Open Reminders Tab"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            Tap <strong>"Add Medicine"</strong> to enter the medicine name,
+            details, and assign it to a compartment.<br />
+            <img
+              src="assets/images/step-add-medicine.png"
+              alt="Add Medicine Details"
+              class="responsive-img"
+            />
+            <img
+              src="assets/images/step-popup-add-medicine.png"
+              alt="Add Medicine Popup"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            When choosing a compartment, you'll see available (vacant) and
+            unavailable (occupied) compartments.
+          </li>
+
+          <li>
+            If a compartment is <strong>occupied</strong>, the system will
+            prevent you from selecting it and show a message like
+            <em>"Occupied."</em> If it's <strong>vacant</strong>, you can assign
+            your medicine to it successfully.
+            <img
+              src="assets/images/step-compartment-selection.png"
+              alt="Compartment Selection with Occupied and Vacant Status"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            After saving the medicine, tap <strong>"Add Reminder"</strong> to
+            set when the medicine should be taken.
+            <div class="image-group">
+              <img
+                src="assets/images/step-add-reminder.png"
+                alt="Open Add Reminder Tab"
+                class="responsive-img"
+              />
+              <img
+                src="assets/images/step-popup-add-reminder.png"
+                alt="Add Reminder Popup"
+                class="responsive-img"
+              />
+            </div>
+          </li>
+
+          <li>
+            Tap <strong>"Submit"</strong> to save the reminder. It will now
+            appear in the Medication Timeline and calendar.
+            <img
+              src="assets/images/step-submit-reminder.png"
+              alt="Reminder Saved"
+              class="responsive-img"
+            />
+          </li>
+
+          <li>
+            Tap <strong>"Show Medicines"</strong> to view all added
+            medicines.<br />
+            <img
+              src="assets/images/step-show-medicine.png"
+              alt="Show Medicines"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            While in the <strong>Show Medicines</strong> view, you can
+            <strong>edit</strong> or <strong>delete</strong> any medicine.<br />
+            <img
+              src="assets/images/step-edit-delete.png"
+              alt="Edit or Delete Medicine"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            Tap <strong>"Show Schedules"</strong> to view all the reminders and
+            their scheduled times.<br />
+            <img
+              src="assets/images/step-show-schedule.png"
+              alt="Show Schedules"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            While in the <strong>Show Schedules</strong> view, you can
+            <strong>delete</strong> any schedule if needed.<br />
+            <img
+              src="assets/images/step-delete-schedule.png"
+              alt="Delete Schedule"
+              class="responsive-img"
+            />
+          </li>
+        </ul>
+      </div>
+    </ion-accordion>
+
+    <!-- History Accordion -->
+    <ion-accordion value="history">
+      <ion-item slot="header" color="light">
+        <ion-icon
+          name="time-outline"
+          slot="start"
+          class="header-icon"
+        ></ion-icon>
+        <ion-label>History Tab</ion-label>
+      </ion-item>
+      <div class="ion-padding" slot="content">
+        <ul>
+          <li>
+            Tap the <strong>"History"</strong> tab to view medication logs.<br />
+            <img
+              src="assets/images/step-history-tab.png"
+              alt="Open History Tab"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            History includes:
+            <ul>
+              <li>
+                <strong>Complete</strong> – Taken from the dispenser<br />
+                <img
+                  src="assets/images/step-complete.png"
+                  alt="Complete"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                <strong>Missed</strong> – Not taken<br />
+                <img
+                  src="assets/images/step-missed.png"
+                  alt="Missed"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                <strong>Late</strong> – Taken outside the scheduled time<br />
+                <img
+                  src="assets/images/step-late.png"
+                  alt="Late"
+                  class="responsive-img"
+                />
+              </li>
+            </ul>
+          </li>
+          <li>
+            Tap a <strong>missed</strong> medication to update its status.<br />
+            <img
+              src="assets/images/step-history-missed.png"
+              alt="Update Missed"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            Choose from the following:
+            <ul>
+              <li><strong>Correct Time</strong> – Moves to Complete</li>
+              <li>
+                <strong>Specific Time</strong> – Moves to Late<br />
+                <img
+                  src="assets/images/step-specific-time.png"
+                  alt="Specific Time"
+                  class="responsive-img"
+                />
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </ion-accordion>
+
+    <!-- Profile Accordion -->
+    <ion-accordion value="profile">
+      <ion-item slot="header" color="light">
+        <ion-icon
+          name="person-circle-outline"
+          slot="start"
+          class="header-icon"
+        ></ion-icon>
+        <ion-label>Profile Menu</ion-label>
+      </ion-item>
+      <div class="ion-padding" slot="content">
+        <ul>
+          <li>
+            Tap the profile icon in the top-left corner.<br />
+            <img
+              src="assets/images/step-profile-icon.png"
+              alt="Profile Icon"
+              class="responsive-img"
+            />
+          </li>
+          <li>
+            The menu includes:
+            <ul>
+              <li>
+                Change Password<br />
+                <img
+                  src="assets/images/step-change-password.png"
+                  alt="Change Password"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                Switch Account<br />
+                <img
+                  src="assets/images/step-switch-account.png"
+                  alt="Switch Account"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                Add Account<br />
+                <img
+                  src="assets/images/step-add-user.png"
+                  alt="Add User"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                Delete Account<br />
+                <img
+                  src="assets/images/step-delete-user.png"
+                  alt="Delete User"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                Clean Compartment
+                <p class="ion-padding-start">
+                  Once a liquid medication is finished or has expired, leftover
+                  residue may remain inside the compartment. To ensure
+                  cleanliness and avoid contamination, users must clean the
+                  compartment.
+                </p>
+                <p class="ion-padding-start">
+                  Tap <strong>"Clean Compartment"</strong> and choose which
+                  compartment to clean (B1, B2, or B3). After selecting, you
+                  will be asked to <strong>add water</strong> to rinse the
+                  compartment. If residue is still visible after the first
+                  cleaning, simply repeat the process.
+                </p>
+                <img
+                  src="assets/images/step-clean-compartment.png"
+                  alt="Clean Compartment"
+                  class="responsive-img"
+                />
+              </li>
+              <li>
+                Logout<br />
+                <img
+                  src="assets/images/step-profile-options.png"
+                  alt="Logout"
+                  class="responsive-img"
+                />
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </ion-accordion>
+
+    <ion-accordion value="dispenser">
+      <ion-item slot="header" color="light">
+        <ion-icon
+          name="cube-outline"
+          slot="start"
+          class="header-icon"
+        ></ion-icon>
+        <ion-label>Dispenser</ion-label>
+      </ion-item>
+
+      <div class="ion-padding" slot="content">
+        <!-- Full View -->
+        <img
+          src="assets/images/dispenser-full-view.png"
+          alt="Full View"
+          class="responsive-img"
+        />
+
+        <ul>
+          <li>
+            To open the dispenser for refilling or maintenance, use the
+            <strong>main switch button</strong>.
+            <br />
+            This physical switch is typically located at the top or front of the
+            dispenser. Once pressed, it unlocks the lid and opens the entire
+            unit.
+            <img
+              src="assets/images/dispenser-open-switch.png"
+              alt="Switch Button to Open Dispenser"
+              class="responsive-img"
+            />
+          </li>
+
+          <li>
+            The dispenser contains <strong>six compartments</strong>: three for
+            pills and three for liquids.
+            <img
+              src="assets/images/step-dispenser-compartments.png"
+              alt="Compartments"
+              class="responsive-img"
+            />
+          </li>
+
+          <li>
+            During scheduled times, an <strong>alarm</strong> will sound and an
+            <strong>LED light</strong> will illuminate on the correct
+            compartment.
+            <img
+              src="assets/images/step-dispenser-led.png"
+              alt="LED Indicator"
+              class="responsive-img"
+            />
+          </li>
+
+          <li>
+            Press the <strong>dispense button</strong> to release the
+            medication:
+            <ul>
+              <li>
+                Liquid medicines are released automatically through the nozzle.
+              </li>
+              <li>Pills are dispensed based on the scheduled dosage.</li>
+            </ul>
+            <img
+              src="assets/images/step-liquid-dispense.png"
+              alt="Liquid Dispense"
+              class="responsive-img"
+            />
+            <img
+              src="assets/images/step-pill-dispense.png"
+              alt="Pill Dispense"
+              class="responsive-img"
+            />
+          </li>
+
+          <li>
+            A <strong>built-in water container</strong> allows users to drink
+            water after taking medicine.
+            <img
+              src="assets/images/dispenser-water-container.png"
+              alt="Water Container"
+              class="responsive-img"
+            />
+          </li>
+
+          <!-- UPS System -->
+          <li>
+            The dispenser is equipped with a
+            <strong>UPS (Uninterruptible Power Supply)</strong>, ensuring it
+            continues to function even during power outages.
+            <img
+              src="assets/images/dispenser-ups.png"
+              alt="UPS Battery Backup"
+              class="responsive-img"
+            />
+          </li>
+
+          <!-- Expired Medicine Drawers -->
+          <li>
+            Expired medicines are automatically released into
+            <strong>four drawers</strong>:
+            <ul>
+              <li>1 drawer for liquid medicines</li>
+              <li>3 drawers for different types of pills</li>
+            </ul>
+            <img
+              src="assets/images/dispenser-expired-drawers.png"
+              alt="Expired Medication Drawers"
+              class="responsive-img"
+            />
+          </li>
+
+          <!-- Notification -->
+          <li>
+            After dispensing, the system sends a
+            <strong>notification</strong> to your connected device to confirm
+            intake.
+            <img
+              src="assets/images/step-notification.png"
+              alt="Notification Example"
+              class="responsive-img"
+            />
+          </li>
+        </ul>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+
+  <p class="footer-note ion-margin-top ion-text-center">
+    This manual is designed to help you use the app effectively and manage your
+    medication intake.
+  </p>
 </ion-content>

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { WebsocketService } from './services/websocket.service';
 import { Platform } from '@ionic/angular';
-import { AuthService } from './services/auth.service';
+import { AlarmService } from './services/alarm.service';
+import { TokenService } from './services/token.service';
 import { LocalNotifications } from '@awesome-cordova-plugins/local-notifications/ngx';
 
 @Component({
@@ -12,9 +12,9 @@ import { LocalNotifications } from '@awesome-cordova-plugins/local-notifications
 })
 export class AppComponent {
   constructor(
-    private websocketService: WebsocketService,
     private platform: Platform,
-    private authService: AuthService,
+    private alarmService: AlarmService,
+    private tokenService: TokenService,
     private localNotifications: LocalNotifications
   ) {
     this.requestNotificationPermission();
@@ -40,11 +40,11 @@ export class AppComponent {
     });
   }
 
-  async ngOnInit() {
-    const active = await this.authService.getActiveAccount();
+  ngOnInit() {
+    const active = this.tokenService.getActiveAccount();
 
     if (active?.access_token && active?.user) {
-      this.websocketService.connectWebSocket();
+      this.alarmService.connectWebSocket();
     } else {
       console.log('No token found, WebSocket will not start.');
     }

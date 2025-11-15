@@ -1,1 +1,49 @@
+/* Allow overlapping */
+ion-app,
+ion-tabs,
+ion-tab-bar {
+  overflow: visible !important;
+}
 
+/* Tab bar layout */
+ion-tab-bar {
+  position: relative;
+  height: 70px;
+  background-color: #fff;
+  padding: 0 10px;
+  box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* General tab style */
+ion-tab-button {
+  --background: transparent;
+  --color: #444;
+  --color-selected: #3b82f6;
+}
+
+/* Center tab stays inline but in front */
+.center-tab {
+  position: relative;
+  z-index: 10; /* Makes sure it appears on top */
+}
+
+/* Circle visual */
+.circle-container {
+  background-color: #0b0f19;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-top: -10px; /* Slight overlap without looking raised */
+}
+
+/* Logo inside */
+.circle-container img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}

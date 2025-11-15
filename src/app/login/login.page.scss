@@ -1,4 +1,20 @@
+html,
+body,
 ion-content {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+ion-content::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0; /* Adds space at top & bottom */
+}
+
+.centered-content {
   --background: #436ab7;
   display: flex;
   justify-content: center;
@@ -12,12 +28,14 @@ ion-content {
 .container {
   max-width: 400px;
   width: 100%;
+  margin: auto; /* Allows flex centering */
   text-align: center;
+  padding: 0 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 16px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .logo-wrapper {
@@ -42,7 +60,6 @@ ion-content {
   border-radius: 20px;
   padding: 60px 20px 30px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: -40px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -102,7 +119,7 @@ ion-input {
   cursor: pointer;
 }
 
-/* Responsive: Small screens */
+/* Responsive Adjustments */
 @media (max-width: 360px) {
   .form-title {
     font-size: 20px;
