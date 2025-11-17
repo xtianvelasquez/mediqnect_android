@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   urls: {
-    api: 'http://172.20.19.115:8000', // change to your ip
-    ws: 'ws://172.20.19.115:8000', // change to your ip
+    api: 'http://192.168.68.104:8000', // change to your ip
+    ws: 'ws://192.168.68.104:8000', // change to your ip
   },
 };

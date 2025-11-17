@@ -115,7 +115,7 @@ export class Tab1Page {
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'dayGridMonth,dayGridWeek'
+      right: 'dayGridMonth,dayGridWeek',
     },
     events: [],
     editable: true,
@@ -132,7 +132,7 @@ export class Tab1Page {
     buttonText: {
       today: 'Today',
       month: 'Month',
-      week: 'Week'
+      week: 'Week',
     },
     select: (selectionInfo) => {
       this.selectedDate = selectionInfo.startStr;
@@ -146,7 +146,7 @@ export class Tab1Page {
       const clickedDate = new Date(info.event.start!);
       this.selectedDate = clickedDate.toISOString().split('T')[0];
       console.log('Event clicked:', this.selectedDate);
-    }
+    },
   };
 
   constructor(
@@ -180,11 +180,19 @@ export class Tab1Page {
   }
 
   isTabletSelected(): boolean {
-    return this.forms.find(f => f.form_id === this.medicine_form)?.form_name.toLowerCase() === 'tablet';
+    return (
+      this.forms
+        .find((f) => f.form_id === this.medicine_form)
+        ?.form_name.toLowerCase() === 'tablet'
+    );
   }
 
   isSyrupSelected(): boolean {
-    return this.forms.find(f => f.form_id === this.medicine_form)?.form_name.toLowerCase() === 'syrups';
+    return (
+      this.forms
+        .find((f) => f.form_id === this.medicine_form)
+        ?.form_name.toLowerCase() === 'syrups'
+    );
   }
 
   onFormSelect(value: number) {
@@ -193,19 +201,21 @@ export class Tab1Page {
   }
 
   isMedicinePrescribed(medicineId: number): boolean {
-    return this.prescriptions.some(p => p.medicine_id === medicineId);
+    return this.prescriptions.some((p) => p.medicine_id === medicineId);
   }
 
   getTabletCompartments(): Compartments[] {
-    return this.compartments.filter(c => c.set_name === 'tablet');
+    return this.compartments.filter((c) => c.set_name === 'tablet');
   }
 
   getSyrupCompartments(): Compartments[] {
-    return this.compartments.filter(c => c.set_name === 'syrups');
+    return this.compartments.filter((c) => c.set_name === 'syrups');
   }
 
   getDoseUnit(): string {
-    const component = this.components.find(c => c.component_id === this.selectedMedicine?.form_id);
+    const component = this.components.find(
+      (c) => c.component_id === this.selectedMedicine?.form_id
+    );
     return component?.component_name || '';
   }
 
@@ -271,20 +281,25 @@ export class Tab1Page {
 
   validateMedicineInputs() {
     if (!this.medicine_name) return 'Medicine name is required.';
-    if (this.medicine_form === null || this.medicine_form === undefined) return 'Medicine form is required.';
-    if (!this.net_content || this.net_content <= 0) return 'Net content must be greater than 0.';
-    if (this.medicine_form === 1 && this.net_content > 60) return 'Net content for tablets must be at most 60.';
-    if (this.medicine_form === 2 && this.net_content > 300) return 'Net content for syrups must be at most 300.';
+    if (this.medicine_form === null || this.medicine_form === undefined)
+      return 'Medicine form is required.';
+    if (!this.net_content || this.net_content <= 0)
+      return 'Net content must be greater than 0.';
+    if (this.medicine_form === 1 && this.net_content > 60)
+      return 'Net content for tablets must be at most 60.';
+    if (this.medicine_form === 2 && this.net_content > 300)
+      return 'Net content for syrups must be at most 300.';
     if (!this.expiration_date) return 'Expiration date is required.';
     if (this.compartment == null) return 'Please select a compartment.';
 
-    return null
+    return null;
   }
 
   validatePrescriptionInputs() {
     if (!this.selectedMedicine) return 'Please select a medicine.';
     if (!this.start_datetime) return 'Start date is required.';
-    if (!this.hour_interval || this.hour_interval < 3) return 'Hour interval must be at least 3.';
+    if (!this.hour_interval || this.hour_interval < 3)
+      return 'Hour interval must be at least 3.';
     if (!this.dose || this.dose <= 0) return 'Dose must be greater than 0.';
 
     return null;
@@ -293,8 +308,7 @@ export class Tab1Page {
   validateDateInputs(start: Date, now: Date) {
     const isStartToday = start.toDateString() === now.toDateString();
 
-    if (isNaN(start.getTime()))
-      return 'Invalid date inputs.';
+    if (isNaN(start.getTime())) return 'Invalid date inputs.';
 
     if (isStartToday && start.getTime() <= now.getTime())
       return 'Start time must be in the future.';
@@ -311,17 +325,26 @@ export class Tab1Page {
     )
       return 'Please fill in the necessary field.';
 
-    if (new Date(this.selectedPrescription.expiration_date).toISOString().split('T')[0] <= new Date().toISOString().split('T')[0])
+    if (
+      new Date(this.selectedPrescription.expiration_date)
+        .toISOString()
+        .split('T')[0] <= new Date().toISOString().split('T')[0]
+    )
       return 'Your medicine is already expired.';
 
     if (this.selectedPrescription.net_content <= 0)
-      return 'The number fields should not be none or negative.'
+      return 'The number fields should not be none or negative.';
 
     return null;
   }
 
   calculateEndDate(): string {
-    if (!this.selectedMedicine || !this.dose || !this.hour_interval || !this.start_datetime) {
+    if (
+      !this.selectedMedicine ||
+      !this.dose ||
+      !this.hour_interval ||
+      !this.start_datetime
+    ) {
       return '';
     }
 
@@ -394,7 +417,7 @@ export class Tab1Page {
       }
 
       const expiration = this.selectedPrescription.expiration_date
-        ? new Date(this.selectedPrescription.expiration_date).toISOString().slice(0, 10)
+        ? this.selectedPrescription.expiration_date // keep as YYYY-MM-DD
         : null;
 
       this.notifService.showLoading('Please wait...');
@@ -408,9 +431,7 @@ export class Tab1Page {
         this.selectedPrescription.color_name
       );
       await this.notifService.presentMessage(response);
-      this.getPrescriptions(),
-        this.getSchedules(),
-        this.closeEditMedicine();
+      this.getPrescriptions(), this.getSchedules(), this.closeEditMedicine();
     } catch (error: any) {
       const message = error?.message || 'An unexpected error occurred.';
       await this.notifService.presentError(message);
@@ -435,20 +456,20 @@ export class Tab1Page {
 
       this.calendarOptions.events = [];
 
-      this.schedules.forEach(schedule => {
+      this.schedules.forEach((schedule) => {
         const event = {
           title: schedule.medicine_name,
           start: new Date(schedule.scheduled_datetime).toISOString(),
           color: schedule.color_name,
           extendedProps: {
             intakeId: schedule.intake_id,
-            scheduleId: schedule.schedule_id
+            scheduleId: schedule.schedule_id,
           },
-          display: 'block'
+          display: 'block',
         };
         this.calendarOptions.events = [
           ...(this.calendarOptions.events as any[]),
-          event
+          event,
         ];
       });
 
@@ -500,7 +521,7 @@ export class Tab1Page {
       await this.notifService.presentMessage(response);
       this.getSchedules();
       this.getPrescriptions();
-      this.getCompartments()
+      this.getCompartments();
     } catch (error: any) {
       const message = error?.message || 'An unexpected error occurred.';
       await this.notifService.presentError(message);
@@ -529,7 +550,7 @@ export class Tab1Page {
       this.getMedicines();
       this.getPrescriptions();
       this.getSchedules();
-      this.getCompartments()
+      this.getCompartments();
     } catch (error: any) {
       const message = error?.message || 'An unexpected error occurred.';
       await this.notifService.presentError(message);
@@ -566,7 +587,7 @@ export class Tab1Page {
         this.medicine_form,
         this.net_content,
         expiration,
-        this.compartment,
+        this.compartment
       );
 
       this.closeAddMedicine();
@@ -592,7 +613,8 @@ export class Tab1Page {
       }
 
       const med = this.medicines.find(
-        (medicine) => medicine.medicine_id === this.selectedMedicine?.medicine_id
+        (medicine) =>
+          medicine.medicine_id === this.selectedMedicine?.medicine_id
       );
 
       if (!med) {
@@ -601,7 +623,9 @@ export class Tab1Page {
       }
 
       if (med.net_content < this.dose) {
-        await this.notifService.presentError('The dose is greater than the net content. Please try again.');
+        await this.notifService.presentError(
+          'The dose is greater than the net content. Please try again.'
+        );
         return;
       }
 
@@ -632,7 +656,7 @@ export class Tab1Page {
         this.calculateEndDate(),
         this.hour_interval,
         this.dose,
-        med.form_id,
+        med.form_id
       );
 
       this.closeAddPrescription();
@@ -664,7 +688,10 @@ export class Tab1Page {
       this.components = response;
     } catch (error: any) {
       const message =
-        error?.error || error?.message || error?.detail || 'An unexpected error occurred.';
+        error?.error ||
+        error?.message ||
+        error?.detail ||
+        'An unexpected error occurred.';
       console.warn(message);
     }
   }
@@ -689,9 +716,7 @@ export class Tab1Page {
         return;
       }
 
-      const response = await this.mainService.getMedicines(
-        active.access_token
-      );
+      const response = await this.mainService.getMedicines(active.access_token);
       this.medicines = response;
       console.log(this.medicines);
     } catch (error: any) {
@@ -708,7 +733,8 @@ export class Tab1Page {
         this.getMedicineForms(),
         this.getDoseComponents(),
         this.getCompartments(),
-        this.getMedicines()]);
+        this.getMedicines(),
+      ]);
     } catch (error) {
       console.warn('Error refreshing data:', error);
     } finally {
@@ -718,28 +744,28 @@ export class Tab1Page {
 
   checkExpiration() {
     const now = new Date();
-    const expiredMeds = this.prescriptions.filter(prescription => {
+    const expiredMeds = this.prescriptions.filter((prescription) => {
       const expDate = new Date(prescription.expiration_date);
       return expDate < now && !prescription.notified_expired;
     });
 
-    expiredMeds.forEach(med => {
+    expiredMeds.forEach((med) => {
       this.localNotifications.schedule({
         id: med.medicine_id,
         title: 'Medicine Expired',
         text: `${med.medicine_name} has expired today at ${med.expiration_date}.`,
-        foreground: true
+        foreground: true,
       });
 
       med.notified_expired = true;
     });
 
     this.getPrescriptions(),
-    this.getSchedules(),
-    this.getMedicineForms(),
-    this.getDoseComponents(),
-    this.getCompartments(),
-    this.getMedicines();
+      this.getSchedules(),
+      this.getMedicineForms(),
+      this.getDoseComponents(),
+      this.getCompartments(),
+      this.getMedicines();
   }
 
   startExpirationCheck() {
